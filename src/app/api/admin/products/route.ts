@@ -102,3 +102,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  if (!(await isAdmin())) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  try {
+    const body = await req.json();
+    const ids = Array.isArray(body.ids) ? body.ids.filter((id: unknown): id is string => typeof id === 'string') : [];
+    if (ids.length === 0) return NextResponse.json({ error: 'Seleccioná al menos un producto' }, { status: 400 });
+    const result = await prisma.product.deleteMany({ where: { id: { in: ids } } });
+    return NextResponse.json({ deleted: result.count });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'No se pudieron eliminar los productos';
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}

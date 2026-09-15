@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import ProductListTable from '@/components/admin/ProductListTable';
 
 export default async function AdminProducts({
   searchParams,
@@ -96,76 +97,7 @@ export default async function AdminProducts({
         </form>
       </div>
 
-      {/* Tabla */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-500 bg-gray-50 text-xs uppercase tracking-wider">
-              <th className="p-4">Imagen</th>
-              <th className="p-4">SKU</th>
-              <th className="p-4">Nombre</th>
-              <th className="p-4">Categoría</th>
-              <th className="p-4">Marca</th>
-              <th className="p-4 text-right">Precio</th>
-              <th className="p-4 text-right">Costo</th>
-              <th className="p-4 text-center">Stock</th>
-              <th className="p-4 text-center">Estado</th>
-              <th className="p-4 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => {
-              const imgs = JSON.parse(p.images || '[]') as string[];
-              return (
-                <tr key={p.id} className="border-t hover:bg-gray-50">
-                  <td className="p-4">
-                    <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                      {imgs[0] ? (
-                        <img src={imgs[0]} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">N/A</div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-4 font-mono text-xs text-gray-500">{p.sku}</td>
-                  <td className="p-4">
-                    <Link href={`/admin/productos/${p.id}`} className="font-medium text-gray-900 hover:text-[#e8850c]">
-                      {p.name}
-                    </Link>
-                    <div className="flex gap-1 mt-1">
-                      {p.featured && <span className="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 rounded">Destacado</span>}
-                      {p.isNew && <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 rounded">Nuevo</span>}
-                    </div>
-                  </td>
-                  <td className="p-4 text-gray-500">{p.category?.name || '-'}</td>
-                  <td className="p-4 text-gray-500">{p.brand?.name || '-'}</td>
-                  <td className="p-4 text-right font-medium">USD {p.price.toFixed(2)}</td>
-                  <td className="p-4 text-right text-gray-400">{p.cost ? `USD ${p.cost.toFixed(2)}` : '-'}</td>
-                  <td className="p-4 text-center">
-                    <span className={`font-medium ${p.stock <= (p.minStock || 0) ? 'text-red-600' : p.stock <= 10 ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {p.stock}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {p.active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center">
-                    <Link href={`/admin/productos/${p.id}`}
-                      className="text-blue-600 hover:text-blue-800 text-xs font-medium">
-                      Editar
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-            {products.length === 0 && (
-              <tr><td colSpan={10} className="py-12 text-center text-gray-400">No se encontraron productos</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ProductListTable products={products} />
 
       {/* Paginación */}
       {pages > 1 && (
