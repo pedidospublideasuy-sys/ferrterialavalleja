@@ -181,9 +181,9 @@ export default function SearchBar({ categoryFilter }: { categoryFilter?: string 
                       )}
                     </div>
                     {item.comparePrice && item.comparePrice > item.price && (
-                      <p className="text-[11px] text-gray-400 line-through">{formatCurrency(item.comparePrice, 'USD')}</p>
+                      <p className="text-[11px] text-gray-400 line-through">{formatCurrency(item.comparePrice, 'UYU')}</p>
                     )}
-                    <p className="text-[16px] font-bold text-gray-900">{formatCurrency(item.price, 'USD')}</p>
+                    <p className="text-[16px] font-bold text-gray-900">{formatCurrency(item.price, 'UYU')}</p>
                     <div className="mt-0.5">{stockBadge(item.stock)}</div>
                   </div>
                 </Link>

@@ -179,7 +179,7 @@ export default function CheckoutPage() {
                 {items.map((item) => (
                   <div key={item.product.id} className="flex justify-between text-sm">
                     <span className="text-gray-600">{item.product.name} x{item.quantity}</span>
-                    <span className="font-medium">{formatCurrency(item.product.price * item.quantity, 'USD')}</span>
+                    <span className="font-medium">{formatCurrency(item.product.price * item.quantity, item.product.currency || 'UYU')}</span>
                   </div>
                 ))}
               </div>

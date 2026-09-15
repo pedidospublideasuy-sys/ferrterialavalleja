@@ -17,6 +17,7 @@ interface ProductDetail {
   shortDesc: string | null;
   sku: string;
   price: number;
+  currency?: string | null;
   comparePrice: number | null;
   stock: number;
   images: string;
@@ -103,6 +104,7 @@ export default function ProductDetailPage() {
       name: product.name,
       slug: product.slug,
       price: product.price,
+      currency: product.currency === 'USD' ? 'USD' : 'UYU',
       image: images[0],
       sku: product.sku,
       stock: product.stock,
@@ -185,9 +187,9 @@ export default function ProductDetailPage() {
               </a>
             ) : (
               <>
-                <span className="text-3xl font-extrabold text-blue-900">{formatCurrency(product.price, 'USD')}</span>
+                <span className="text-3xl font-extrabold text-blue-900">{formatCurrency(product.price, product.currency === 'USD' ? 'USD' : 'UYU')}</span>
                 {product.comparePrice && (
-                  <span className="text-lg text-gray-400 line-through">{formatCurrency(product.comparePrice, 'USD')}</span>
+                  <span className="text-lg text-gray-400 line-through">{formatCurrency(product.comparePrice, product.currency === 'USD' ? 'USD' : 'UYU')}</span>
                 )}
                 {discount > 0 && (
                   <span className="bg-red-100 text-red-700 text-sm font-bold px-3 py-1 rounded-full">Ahorro {discount}%</span>

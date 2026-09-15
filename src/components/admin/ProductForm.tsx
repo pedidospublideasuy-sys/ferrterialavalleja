@@ -36,7 +36,7 @@ interface ProductData {
 
 const emptyProduct: ProductData = {
   name: '', sku: '', barcode: '', description: '', shortDesc: '',
-  price: '', comparePrice: '', cost: '', currency: 'USD',
+  price: '', comparePrice: '', cost: '', currency: 'UYU',
   stock: '0', minStock: '0',
   categoryId: '', brandId: '', typeId: '', images: '[]',
   featured: false, active: true, isNew: false,
@@ -76,7 +76,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
             categoryId: p.categoryId, brandId: p.brandId || '', typeId: p.typeId || '',
             images: p.images || '[]',
             featured: p.featured, active: p.active, isNew: p.isNew,
-            currency: p.currency || 'USD',
+            currency: p.currency || 'UYU',
             weight: p.weight ? String(p.weight) : '',
             dimensions: p.dimensions || '', warranty: p.warranty || '',
             tags: p.tags || '[]', specs: p.specs || '',

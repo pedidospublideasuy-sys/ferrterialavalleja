@@ -6,6 +6,7 @@ export interface CartProduct {
   name: string;
   slug: string;
   price: number;
+  currency?: 'USD' | 'UYU';
   image: string;
   sku: string;
   stock: number;

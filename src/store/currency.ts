@@ -33,7 +33,7 @@ function fmt(price: number, currency: Currency): string {
 export const useCurrency = create<CurrencyStore>()(
     persist(
         (set, get) => ({
-            currency: 'USD',
+            currency: 'UYU',
             rate: DEFAULT_RATE,
             rateUpdatedAt: 0,
 
@@ -60,7 +60,7 @@ export const useCurrency = create<CurrencyStore>()(
                 return price;
             },
 
-            format: (price, fromCurrency = 'USD') => {
+            format: (price, fromCurrency = 'UYU') => {
                 const { currency } = get();
                 const converted = get().convert(price, fromCurrency);
                 return fmt(converted, currency);

@@ -54,7 +54,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   try { images = JSON.parse(product.images || '[]'); } catch { }
   const mainImage = images[0] || null;
 
-  const productCurrency = (product.currency || 'USD') as 'USD' | 'UYU';
+  const productCurrency = (product.currency || 'UYU') as 'USD' | 'UYU';
 
   const discount = product.comparePrice && product.comparePrice > product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
@@ -66,6 +66,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     const cartProduct: CartProduct = {
       id: product.id, name: product.name, slug: product.slug,
       price: product.price, image: mainImage || '', sku: product.sku, stock: product.stock,
+      currency: productCurrency,
     };
     for (let i = 0; i < qty; i++) addItem(cartProduct);
     toast.success(`${qty > 1 ? qty + 'x ' : ''}Agregado al carrito`);

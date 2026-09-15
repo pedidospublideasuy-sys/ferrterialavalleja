@@ -147,6 +147,7 @@ async function syncWooCommerceProduct(
       data: {
         name,
         price,
+        currency: 'UYU',
         comparePrice,
         stock,
         description,
@@ -182,6 +183,7 @@ async function syncWooCommerceProduct(
       slug: slugify(name, { lower: true, strict: true }) + '-' + Date.now(),
       sku,
       price,
+      currency: 'UYU',
       comparePrice,
       stock,
       description,
@@ -211,7 +213,7 @@ async function syncWooCommerceVariation(item: WooVariation, parent: WooProduct, 
   const variationImages = normalizeImageUrls(item.image?.src ? [item.image.src] : parent.images)
     .map(url => normalizeExternalImageUrl(url, baseUrl));
   const data = {
-    name, price, comparePrice, sku,
+    name, price, comparePrice, sku, currency: 'UYU',
     stock: item.manage_stock ? (item.stock_quantity ?? 0) : 999,
     description: htmlToText(item.description || parent.short_description || parent.description),
     images: JSON.stringify(variationImages),

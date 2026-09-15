@@ -36,7 +36,7 @@ export default function CartPage() {
               <div className="flex-1 min-w-0">
                 <Link href={`/productos/${item.product.slug}`} className="font-medium text-gray-800 hover:text-blue-600 line-clamp-1">{item.product.name}</Link>
                 <p className="text-sm text-gray-400">SKU: {item.product.sku}</p>
-                <p className="font-bold text-blue-900 mt-1">{formatCurrency(item.product.price, 'USD')}</p>
+                <p className="font-bold text-blue-900 mt-1">{formatCurrency(item.product.price, item.product.currency || 'UYU')}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="p-1 border rounded hover:bg-gray-100">
@@ -48,7 +48,7 @@ export default function CartPage() {
                 </button>
               </div>
               <div className="text-right">
-                <p className="font-bold text-gray-800">{formatCurrency(item.product.price * item.quantity, 'USD')}</p>
+                <p className="font-bold text-gray-800">{formatCurrency(item.product.price * item.quantity, item.product.currency || 'UYU')}</p>
                 <button onClick={() => removeItem(item.product.id)} className="text-red-500 hover:text-red-700 mt-1">
                   <TrashIcon className="h-5 w-5" />
                 </button>
@@ -61,9 +61,9 @@ export default function CartPage() {
           <div className="bg-white rounded-xl border p-6 sticky top-24">
             <h2 className="font-bold text-lg text-gray-800 mb-4">Resumen</h2>
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(totalPrice(), 'USD')}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(totalPrice(), 'UYU')}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Envío</span><span className="text-green-600">A calcular</span></div>
-              <div className="border-t pt-3 flex justify-between font-bold text-lg"><span>Total</span><span className="text-blue-900">{formatCurrency(totalPrice(), 'USD')}</span></div>
+              <div className="border-t pt-3 flex justify-between font-bold text-lg"><span>Total</span><span className="text-blue-900">{formatCurrency(totalPrice(), 'UYU')}</span></div>
             </div>
             <Link href="/checkout" className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
               Finalizar Compra

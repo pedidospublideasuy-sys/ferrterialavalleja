@@ -114,7 +114,7 @@ model Product {
   price         Float
   comparePrice  Float?
   cost          Float?
-  currency      String      @default("USD") // USD o UYU
+  currency      String      @default("UYU") // USD o UYU
   stock         Int         @default(0)
   minStock      Int         @default(0)
   images        String      @default("[]") // JSON array de URLs

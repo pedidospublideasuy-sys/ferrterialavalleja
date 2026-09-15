@@ -156,7 +156,7 @@ function CarouselSection({
       >
         {products.map((p) => {
           const img = getFirstImage(p);
-          const productCurrency = (p.currency || 'USD') as 'USD' | 'UYU';
+          const productCurrency = (p.currency || 'UYU') as 'USD' | 'UYU';
           const priceLabel = !hidePrices && p.price > 0 ? formatCurrency(p.price, productCurrency) : null;
           const priceParts = priceLabel ? priceLabel.match(/^([^\d]*)(\d[\d.,\s]*)(.*)$/) : null;
           const pricePrefix = priceParts ? priceParts[1].trim() : '';
