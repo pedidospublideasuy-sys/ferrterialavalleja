@@ -45,7 +45,7 @@ function normalizeImageUrls(values: unknown): string[] {
   const list = Array.isArray(values) ? values : values ? [values] : [];
   return list
     .map((value: any) => typeof value === 'string' ? value : value?.src ?? value?.url)
-    .filter((value: unknown): value is string => typeof value === 'string' && /^(https?:)?\/\//i.test(value))
+    .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
     .map(value => value.startsWith('//') ? `https:${value}` : value)
     .filter((value, index, all) => all.indexOf(value) === index);
 }
@@ -54,6 +54,25 @@ function normalizeExternalImageUrl(value: string, baseUrl: string): string {
   if (/^\/\//.test(value)) return `https:${value}`;
   if (/^https?:\/\//i.test(value)) return value;
   try { return new URL(value, `${new URL(baseUrl).origin}/`).toString(); } catch { return value; }
+}
+
+function htmlToText(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const text = value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|section|h[1-6]|li)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return text || null;
 }
 
 async function fetchWooCommerceProducts(
@@ -112,7 +131,7 @@ async function syncWooCommerceProduct(
   const comparePrice = salePrice && regularPrice > salePrice ? regularPrice : null;
   const sku = item.sku || `WC-${item.id}`;
   const stock = item.manage_stock ? (item.stock_quantity ?? 0) : 999;
-  const description = item.description || item.short_description || null;
+  const description = htmlToText(item.description || item.short_description);
   const imageUrls = normalizeImageUrls(item.images).map(url => normalizeExternalImageUrl(url, baseUrl));
   const sourceProductId = String(item.id);
 
@@ -177,7 +196,7 @@ async function syncWooCommerceProduct(
   return 'created';
 }
 
-async function syncWooCommerceVariation(item: WooVariation, parent: WooProduct, sourceName: string, categoryName?: string) {
+async function syncWooCommerceVariation(item: WooVariation, parent: WooProduct, sourceName: string, baseUrl: string, categoryName?: string) {
   const regularPrice = parseFloat(item.regular_price || item.price || parent.regular_price || '0');
   const salePrice = parseFloat(item.sale_price || item.price || '0');
   const price = salePrice || regularPrice;
@@ -189,11 +208,13 @@ async function syncWooCommerceVariation(item: WooVariation, parent: WooProduct, 
   const category = categoryName ? await prisma.category.findFirst({ where: { slug: slugify(categoryName, { lower: true, strict: true }) } }) : null;
   const categoryId = category?.id || (await prisma.category.findFirst({ where: { slug: 'woocommerce' } }))?.id;
   if (!categoryId) throw new Error('No se pudo resolver categoría de variación');
+  const variationImages = normalizeImageUrls(item.image?.src ? [item.image.src] : parent.images)
+    .map(url => normalizeExternalImageUrl(url, baseUrl));
   const data = {
     name, price, comparePrice, sku,
     stock: item.manage_stock ? (item.stock_quantity ?? 0) : 999,
-    description: item.description || parent.short_description || parent.description || null,
-    images: JSON.stringify(normalizeImageUrls(item.image?.src ? [item.image.src] : parent.images)),
+    description: htmlToText(item.description || parent.short_description || parent.description),
+    images: JSON.stringify(variationImages),
     categoryId, sourceId: `${parent.id}-${item.id}`, sourceApi: sourceName, active: true,
   };
   if (existing) {
@@ -320,25 +341,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         source.apiKey,
         source.apiSecret,
         page,
-        10,
+        50,
       );
       const products = batch.products;
       totalPages = batch.totalPages;
       total = products.length;
 
-      for (const item of products) {
-        try {
+      for (let offset = 0; offset < products.length; offset += 5) {
+        const itemResults = await Promise.allSettled(products.slice(offset, offset + 5).map(async (item) => {
           await syncWooCommerceProduct(item, source.name, source.baseUrl);
-          synced++;
-          const variations = await fetchWooCommerceVariations(source.baseUrl, source.apiKey, source.apiSecret, item.id);
-          total += variations.length;
+          let itemSynced = 1;
+          const variations = await fetchWooCommerceVariations(source.baseUrl, source.apiKey!, source.apiSecret!, item.id);
           for (const variation of variations) {
-            await syncWooCommerceVariation(variation, item, source.name, item.categories?.[0]?.name);
-            synced++;
+            await syncWooCommerceVariation(variation, item, source.name, source.baseUrl, item.categories?.[0]?.name);
+            itemSynced++;
           }
-        } catch (error) {
-          failed++;
-          console.error(`[WooCommerce sync] Producto ${item.id}:`, error);
+          return itemSynced;
+        }));
+        for (const result of itemResults) {
+          if (result.status === 'fulfilled') {
+            synced += result.value;
+            total += result.value - 1;
+          } else {
+            failed++;
+            console.error('[WooCommerce sync] Producto:', result.reason);
+          }
         }
       }
     } else {

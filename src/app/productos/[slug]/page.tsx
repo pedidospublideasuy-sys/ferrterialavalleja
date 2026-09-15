@@ -27,6 +27,23 @@ interface ProductDetail {
   brand: { id: string; name: string; slug: string } | null;
 }
 
+function formatDescription(value: string): string {
+  return value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|section|h[1-6]|li)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -226,7 +243,7 @@ export default function ProductDetailPage() {
           {product.description && (
             <div className="border-t pt-6 mt-6">
               <h3 className="font-bold text-gray-800 mb-3">Descripcion</h3>
-              <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{product.description}</div>
+              <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{formatDescription(product.description)}</div>
             </div>
           )}
         </div>
