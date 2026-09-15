@@ -120,7 +120,6 @@ export default function Footer() {
                     <span className="text-[#e8850c] mt-0.5">📍</span>
                     <div>
                       {s.footer_address && <span className="block"><b className="text-gray-300">Ventas</b> {s.footer_address}</span>}
-                      {s.footer_service && <span className="block"><b className="text-gray-300">Service</b> {s.footer_service}</span>}
                     </div>
                   </li>
                 )}
@@ -147,7 +146,7 @@ export default function Footer() {
               </ul>
               <h4 className="text-[13px] font-semibold text-gray-300 mb-2 uppercase tracking-wider">{s.footer_ayuda_title}</h4>
               <ul className="space-y-1.5 text-[13px] text-gray-400">
-                {ayuda.map(item => (
+                {ayuda.filter(item => !item.label.toLowerCase().includes('outlet')).map(item => (
                   <li key={item.id}>
                     <Link href={item.href} target={item.openNew ? '_blank' : undefined} className="hover:text-white transition-colors">{item.label}</Link>
                   </li>
@@ -159,7 +158,7 @@ export default function Footer() {
       </div>
       <div className="container mx-auto px-4 py-4">
         <p className="text-[11px] text-gray-500 text-center mb-3">{s.footer_price_disclaimer}</p>
-        {s.footer_show_bank_info === 'true' && banks.length > 0 && (
+        {false && s.footer_show_bank_info === 'true' && banks.length > 0 && (
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-[11px] text-gray-600 mb-3">
             {banks.map((bank: string, i: number) => {
               const sp = bank.indexOf(' ');

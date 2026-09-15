@@ -44,6 +44,9 @@ export default function AparienciaPage() {
   const [colorSecondary, setColorSecondary] = useState('#333333');
   const [colorAccent, setColorAccent] = useState('#fe3439');
   const [colorBg, setColorBg] = useState('#f5f5f5');
+  const [categoryTitleBg, setCategoryTitleBg] = useState('#ffffff');
+  const [categoryTitleColor, setCategoryTitleColor] = useState('#1f2937');
+  const [categoryTitleWidth, setCategoryTitleWidth] = useState('70%');
 
   // Footer
   const [footerDesc, setFooterDesc] = useState('La tienda de insumos de tecnología con mayor servicio y variedad.');
@@ -112,6 +115,9 @@ export default function AparienciaPage() {
       if (s.color_secondary) setColorSecondary(s.color_secondary);
       if (s.color_accent) setColorAccent(s.color_accent);
       if (s.color_bg) setColorBg(s.color_bg);
+      if (s.home_category_title_bg) setCategoryTitleBg(s.home_category_title_bg);
+      if (s.home_category_title_color) setCategoryTitleColor(s.home_category_title_color);
+      if (s.home_category_title_width) setCategoryTitleWidth(s.home_category_title_width);
       if (s.hero_slides) {
         try { const p = JSON.parse(s.hero_slides); if (Array.isArray(p) && p.length) setSlides(p); } catch { }
       }
@@ -158,6 +164,9 @@ export default function AparienciaPage() {
     color_accent: colorAccent, color_bg: colorBg,
     // Sincroniza color_primary como logo_color también
     logo_color: colorPrimary,
+    home_category_title_bg: categoryTitleBg,
+    home_category_title_color: categoryTitleColor,
+    home_category_title_width: categoryTitleWidth,
   }, 'Colores guardados');
 
   const saveSlider = () => saveSettings({
@@ -383,6 +392,15 @@ export default function AparienciaPage() {
               >
                 -25%
               </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-bold text-sm text-gray-800 mb-1">Título de categorías destacadas</h2>
+            <p className="text-xs text-gray-400 mb-4">Ajustá el color de fondo, el color del texto y el ancho. En celulares se adapta automáticamente.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Fondo</label><input type="color" value={categoryTitleBg} onChange={e => setCategoryTitleBg(e.target.value)} className="h-10 w-full rounded border cursor-pointer" /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Texto</label><input type="color" value={categoryTitleColor} onChange={e => setCategoryTitleColor(e.target.value)} className="h-10 w-full rounded border cursor-pointer" /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Ancho</label><select value={categoryTitleWidth} onChange={e => setCategoryTitleWidth(e.target.value)} className={inputClass}><option value="50%">50%</option><option value="60%">60%</option><option value="70%">70%</option><option value="80%">80%</option><option value="90%">90%</option><option value="100%">100%</option></select></div>
             </div>
           </div>
 

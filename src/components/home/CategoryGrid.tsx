@@ -162,15 +162,21 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 export default function CategoryGrid() {
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [titleStyle, setTitleStyle] = useState({ background: '#ffffff', color: '#1f2937', width: '100%' });
   const [current, setCurrent] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/public/settings?keys=home_carousel_categories').then(r => r.ok ? r.json() : {}),
+      fetch('/api/public/settings?keys=home_carousel_categories,home_category_title_bg,home_category_title_color,home_category_title_width').then(r => r.ok ? r.json() : {}),
       fetch('/api/categories').then(r => r.ok ? r.json() : []),
     ]).then(([settings, dbCategories]) => {
-      const publicSettings = settings as { home_carousel_categories?: string };
+      const publicSettings = settings as { home_carousel_categories?: string; home_category_title_bg?: string; home_category_title_color?: string; home_category_title_width?: string };
+      setTitleStyle({
+        background: publicSettings.home_category_title_bg || '#ffffff',
+        color: publicSettings.home_category_title_color || '#1f2937',
+        width: publicSettings.home_category_title_width || '100%',
+      });
       let selected: string[] = [];
       try {
         const parsed = JSON.parse(publicSettings.home_carousel_categories || '[]');
@@ -213,7 +219,7 @@ export default function CategoryGrid() {
 
   return (
     <nav className="relative z-40 bg-white border-x border-b border-gray-100">
-      <div className="store-section-title mx-4 mt-5 mb-2">Categorías destacadas</div>
+      <div className="store-section-title mx-auto mt-5 mb-2 px-4 py-2 rounded-lg text-center" style={{ backgroundColor: titleStyle.background, color: titleStyle.color, width: `min(${titleStyle.width}, calc(100% - 2rem))` }}>Categorías destacadas</div>
       <div className="relative max-w-7xl mx-auto px-8 pb-5">
         <button onClick={() => scroll(-1)} aria-label="Categorías anteriores" className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 text-xl text-gray-500 shadow-md hover:text-[#4a2fc5]">‹</button>
         <div ref={navRef} className="flex gap-4 overflow-x-auto scroll-smooth px-1 py-2 [scrollbar-width:none]">
