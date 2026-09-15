@@ -32,7 +32,9 @@ export default function AdminMenu() {
   const [footerItems, setFooterItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<'categories' | 'custom' | 'footer'>('categories');
+  const [tab, setTab] = useState<'categories' | 'placement' | 'custom' | 'footer'>('categories');
+  const [menuCategories, setMenuCategories] = useState<string[]>([]);
+  const [hamburgerCategories, setHamburgerCategories] = useState<string[]>([]);
 
   // Form para items header custom y footer
   const [showItemForm, setShowItemForm] = useState(false);
@@ -47,6 +49,13 @@ export default function AdminMenu() {
       setCategories(data.categories || []);
       setMenuItems(data.menuItems || []);
       setFooterItems(data.footerItems || []);
+      const settingsRes = await fetch('/api/admin/settings');
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json() as { key: string; value: string }[];
+        const values = Object.fromEntries(settings.map(setting => [setting.key, setting.value]));
+        try { setMenuCategories(JSON.parse(values.menu_categories || '[]')); } catch { setMenuCategories([]); }
+        try { setHamburgerCategories(JSON.parse(values.hamburger_categories || '[]')); } catch { setHamburgerCategories([]); }
+      }
     } catch { toast.error('Error al cargar menÃº'); }
     setLoading(false);
   }, []);
@@ -74,6 +83,12 @@ export default function AdminMenu() {
       ]);
       const res = await fetch('/api/admin/menu', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ categories: flat }) });
       if (!res.ok) throw new Error();
+      const settingsRes = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: { menu_categories: JSON.stringify(menuCategories), hamburger_categories: JSON.stringify(hamburgerCategories) } }),
+      });
+      if (!settingsRes.ok) throw new Error();
       toast.success('MenÃº de categorÃ­as guardado');
     } catch { toast.error('Error al guardar'); }
     setSaving(false);
@@ -208,6 +223,9 @@ export default function AdminMenu() {
         <button onClick={() => setTab('categories')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'categories' ? 'bg-[#e8850c] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
           ðŸ“ CategorÃ­as ({categories.length})
         </button>
+        <button onClick={() => setTab('placement')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'placement' ? 'bg-[#e8850c] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+          Ubicación de categorías
+        </button>
         <button onClick={() => setTab('custom')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'custom' ? 'bg-[#e8850c] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
           ðŸ”— Links personalizados ({menuItems.length})
         </button>
@@ -215,6 +233,34 @@ export default function AdminMenu() {
           ðŸ”» Footer ({footerItems.length})
         </button>
       </div>
+
+      {tab === 'placement' && (
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-800">Elegir categorías por menú</h2>
+          <p className="text-sm text-gray-500 mt-1 mb-5">Estos dos selectores son independientes: uno controla la barra debajo del buscador y el otro el menú hamburguesa del celular.</p>
+          {[
+            { title: 'Menú debajo del buscador', value: menuCategories, set: setMenuCategories },
+            { title: 'Menú hamburguesa', value: hamburgerCategories, set: setHamburgerCategories },
+          ].map(group => (
+            <div key={group.title} className="mb-6">
+              <h3 className="font-semibold text-sm mb-2">{group.title}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {categories.map(category => (
+                  <label key={`${group.title}-${category.id}`} className="flex items-center gap-2 border rounded-lg px-3 py-2 text-sm">
+                    <input type="checkbox" checked={group.value.length === 0 || group.value.includes(category.slug)}
+                      onChange={event => group.set(event.target.checked ? [...group.value.filter(slug => slug !== category.slug), category.slug] : group.value.filter(slug => slug !== category.slug))} />
+                    {category.name}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Si no seleccionás ninguna, se muestran todas.</p>
+            </div>
+          ))}
+          <button onClick={saveCategories} disabled={saving} className="bg-[#e8850c] text-white px-5 py-2 rounded-lg text-sm font-semibold">
+            {saving ? 'Guardando...' : 'Guardar ubicaciones'}
+          </button>
+        </div>
+      )}
 
       {/* TAB: CategorÃ­as */}
       {tab === 'categories' && (

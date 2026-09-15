@@ -71,6 +71,10 @@ export default function Header() {
   const formatCurrency = useCurrency((s) => s.format);
   const fetchRate = useCurrency((s) => s.fetchRate);
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>(fallbackCategories);
+  const [hamburgerCategories, setHamburgerCategories] = useState<MenuCategory[]>(fallbackCategories);
+  const [allMenuCategories, setAllMenuCategories] = useState<MenuCategory[]>(fallbackCategories);
+  const [menuCategorySlugs, setMenuCategorySlugs] = useState<string[] | null>(null);
+  const [hamburgerCategorySlugs, setHamburgerCategorySlugs] = useState<string[] | null>(null);
   const [customMenuItems, setCustomMenuItems] = useState<CustomMenuItem[]>([]);
 
   useEffect(() => {
@@ -80,12 +84,16 @@ export default function Header() {
       try {
         const res = await fetch('/api/public/menu');
         const data = await res.json();
-        if (data.categories?.length) setMenuCategories(data.categories);
+        if (data.categories?.length) {
+          setAllMenuCategories(data.categories);
+          setMenuCategories(data.categories);
+          setHamburgerCategories(data.categories);
+        }
         if (data.menuItems) setCustomMenuItems(data.menuItems);
       } catch { /* keep fallback */ }
     };
     fetchMenu();
-    fetch('/api/public/settings?keys=logo_text,logo_accent,logo_color,logo_image_url,logo_mode,logo_width,logo_height,color_primary,color_secondary,color_accent')
+    fetch('/api/public/settings?keys=logo_text,logo_accent,logo_color,logo_image_url,logo_mode,logo_width,logo_height,color_primary,color_secondary,color_accent,menu_categories,hamburger_categories')
       .then(r => r.json())
       .then((data: Record<string, string>) => {
         if (data.logo_text) setLogoText(data.logo_text);
@@ -98,10 +106,25 @@ export default function Header() {
         if (data.color_primary) setColorPrimary(data.color_primary);
         if (data.color_secondary) setColorSecondary(data.color_secondary);
         if (data.color_accent) setColorAccent(data.color_accent);
+        const parseSlugs = (value: string | undefined) => {
+          if (!value) return null;
+          try {
+            const slugs = JSON.parse(value);
+            return Array.isArray(slugs) ? slugs.filter((slug): slug is string => typeof slug === 'string') : null;
+          } catch { return null; }
+        };
+        setMenuCategorySlugs(parseSlugs(data.menu_categories));
+        setHamburgerCategorySlugs(parseSlugs(data.hamburger_categories));
       })
       .catch(() => { });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const filter = (slugs: string[] | null) => slugs ? allMenuCategories.filter(category => slugs.includes(category.slug)) : allMenuCategories;
+    setMenuCategories(filter(menuCategorySlugs));
+    setHamburgerCategories(filter(hamburgerCategorySlugs));
+  }, [allMenuCategories, menuCategorySlugs, hamburgerCategorySlugs]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -330,7 +353,7 @@ export default function Header() {
           </Link>
           {/* Categorías mobile */}
           <ul className="py-2">
-            {menuCategories.map(cat => (
+            {hamburgerCategories.map(cat => (
               <li key={cat.slug}>
                 <Link href={`/productos?cat=${cat.slug}`}
                   className="block px-4 py-2.5 text-gray-300 hover:text-white hover:bg-[#2a2a2a] text-sm transition-colors"
