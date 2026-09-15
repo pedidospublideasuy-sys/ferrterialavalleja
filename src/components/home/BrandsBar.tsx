@@ -16,10 +16,16 @@ export default function BrandsBar() {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    fetch('/api/public/brands')
-      .then((r) => r.json())
-      .then((data) => setBrands(Array.isArray(data) ? data : []))
-      .catch(() => setBrands([]));
+    Promise.all([
+      fetch('/api/public/brands').then(r => r.json()),
+      fetch('/api/public/settings?keys=home_brands').then(r => r.json()),
+    ]).then(([data, settings]) => {
+      const all = Array.isArray(data) ? data as Brand[] : [];
+      try {
+        const selected = JSON.parse(settings?.home_brands || '[]');
+        setBrands(Array.isArray(selected) && selected.length ? all.filter(brand => selected.includes(brand.id)) : all);
+      } catch { setBrands(all); }
+    }).catch(() => setBrands([]));
   }, []);
 
   useEffect(() => {

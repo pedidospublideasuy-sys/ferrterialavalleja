@@ -12,6 +12,7 @@ interface HomeSection {
   enabled: boolean;
 }
 interface CategoryOption { id: string; name: string; slug: string; children?: CategoryOption[] }
+interface BrandOption { id: string; name: string; logo: string | null }
 
 const defaultSettings: { key: string; label: string; type: string; group: string; placeholder?: string }[] = [
   { key: 'site_name', label: 'Nombre del sitio', type: 'text', group: 'general', placeholder: 'Ba Soluciones' },
@@ -50,14 +51,18 @@ export default function AdminConfiguracion() {
   const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [homeCategories, setHomeCategories] = useState<string[]>([]);
+  const [brands, setBrands] = useState<BrandOption[]>([]);
+  const [homeBrands, setHomeBrands] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     try {
-      const [res, categoriesRes] = await Promise.all([
+      const [res, categoriesRes, brandsRes] = await Promise.all([
         fetch('/api/admin/settings'),
         fetch('/api/admin/categories'),
+        fetch('/api/admin/brands'),
       ]);
       if (categoriesRes.ok) setCategories(await categoriesRes.json());
+      if (brandsRes.ok) setBrands(await brandsRes.json());
       if (res.ok) {
         const data: Setting[] = await res.json();
         const map: Record<string, string> = {};
@@ -67,6 +72,12 @@ export default function AdminConfiguracion() {
           try {
             const parsed = JSON.parse(map.home_categories);
             if (Array.isArray(parsed)) setHomeCategories(parsed);
+          } catch { /* keep empty */ }
+        }
+        if (map.home_brands) {
+          try {
+            const parsed = JSON.parse(map.home_brands);
+            if (Array.isArray(parsed)) setHomeBrands(parsed);
           } catch { /* keep empty */ }
         }
         if (map.home_sections) {
@@ -94,6 +105,7 @@ export default function AdminConfiguracion() {
             ...settings,
             home_sections: JSON.stringify(homeSections),
             home_categories: JSON.stringify(homeCategories),
+            home_brands: JSON.stringify(homeBrands),
           },
         }),
       });
@@ -227,6 +239,23 @@ export default function AdminConfiguracion() {
                   const res = await fetch('/api/admin/upload-banner', { method: 'POST', body: data }); const result = await res.json();
                   if (res.ok && result.url) setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, content: result.url } : s)); else toast.error(result.error || 'No se pudo subir la imagen');
                 }} />}
+                {section.type === 'payment' && section.content && <img src={section.content} alt="Vista previa de medios de pago" className="mt-2 h-20 max-w-xs rounded border object-contain" />}
+                {section.type === 'brands' && (
+                  <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
+                    <p className="text-xs text-blue-800 mb-2">Seleccioná las marcas que aparecerán en este carrusel. Sus logos se cargan desde Admin → Marcas.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {brands.map(brand => (
+                        <label key={brand.id} className="flex items-center gap-2 text-xs">
+                          <input type="checkbox" checked={homeBrands.length === 0 || homeBrands.includes(brand.id)}
+                            onChange={e => setHomeBrands(prev => e.target.checked ? [...prev.filter(id => id !== brand.id), brand.id] : prev.filter(id => id !== brand.id))} />
+                          {brand.logo && <img src={brand.logo} alt="" className="h-6 w-10 object-contain" />}
+                          <span>{brand.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <a href="/admin/marcas" className="mt-2 inline-block text-xs text-blue-700 underline">Cargar o editar imágenes de marcas</a>
+                  </div>
+                )}
                 <p className="text-[10px] text-gray-400 mt-1">{section.type === 'html' ? 'HTML básico; no se ejecutan scripts arbitrarios.' : section.type === 'embed' ? 'Se muestra como iframe.' : ''}</p>
               </div>
             ))}

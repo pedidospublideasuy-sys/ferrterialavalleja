@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
         if (!file) return NextResponse.json({ error: 'No se recibió archivo' }, { status: 400 });
 
-        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif', 'image/svg+xml'];
         if (!allowedTypes.includes(file.type)) {
             return NextResponse.json({ error: 'Tipo no permitido. Usá PNG, JPG, WEBP o GIF.' }, { status: 400 });
         }
