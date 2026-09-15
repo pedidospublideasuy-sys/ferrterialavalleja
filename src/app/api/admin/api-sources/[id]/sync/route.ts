@@ -50,6 +50,12 @@ function normalizeImageUrls(values: unknown): string[] {
     .filter((value, index, all) => all.indexOf(value) === index);
 }
 
+function normalizeExternalImageUrl(value: string, baseUrl: string): string {
+  if (/^\/\//.test(value)) return `https:${value}`;
+  if (/^https?:\/\//i.test(value)) return value;
+  try { return new URL(value, `${new URL(baseUrl).origin}/`).toString(); } catch { return value; }
+}
+
 async function fetchWooCommerceProducts(
   baseUrl: string,
   consumerKey: string,
@@ -109,6 +115,7 @@ async function fetchWooCommerceVariations(baseUrl: string, key: string, secret: 
 async function syncWooCommerceProduct(
   item: WooProduct,
   sourceName: string,
+  baseUrl: string,
 ) {
   const name = item.name || 'Sin nombre';
   const regularPrice = parseFloat(item.regular_price || item.price || '0');
@@ -118,7 +125,7 @@ async function syncWooCommerceProduct(
   const sku = item.sku || `WC-${item.id}`;
   const stock = item.manage_stock ? (item.stock_quantity ?? 0) : 999;
   const description = item.description || item.short_description || null;
-  const imageUrls = normalizeImageUrls(item.images);
+  const imageUrls = normalizeImageUrls(item.images).map(url => normalizeExternalImageUrl(url, baseUrl));
   const sourceProductId = String(item.id);
 
   // Buscar si ya existe
@@ -326,7 +333,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
       for (const item of products) {
         try {
-          await syncWooCommerceProduct(item, source.name);
+          await syncWooCommerceProduct(item, source.name, source.baseUrl);
           synced++;
           const variations = await fetchWooCommerceVariations(source.baseUrl, source.apiKey, source.apiSecret, item.id);
           total += variations.length;

@@ -34,8 +34,10 @@ export default function HomeSections() {
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (!data?.home_sections) return;
-        const parsed = JSON.parse(data.home_sections);
-        if (Array.isArray(parsed)) setSections(parsed.filter((section: HomeSection) => section.enabled));
+        try {
+          const parsed = JSON.parse(data.home_sections);
+          if (Array.isArray(parsed)) setSections(parsed.filter((section: HomeSection) => section.enabled !== false));
+        } catch { /* malformed setting is ignored */ }
       })
       .catch(() => {});
   }, []);

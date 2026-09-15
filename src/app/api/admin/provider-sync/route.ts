@@ -19,6 +19,12 @@ function extractImageUrls(product: any): string[] {
     .filter((value, index, all) => all.indexOf(value) === index);
 }
 
+function normalizeProviderImageUrl(value: string): string {
+  if (/^\/\//.test(value)) return `https:${value}`;
+  if (/^https?:\/\//i.test(value)) return value;
+  try { return new URL(value, `${new URL(process.env.PROVIDER_SOAP_URL || 'https://localhost').origin}/`).toString(); } catch { return value; }
+}
+
 async function isAdmin() {
   const session = await getServerSession(authOptions);
   return session?.user?.role === 'admin' || session?.user?.role === 'store_admin';
@@ -273,7 +279,7 @@ export async function POST(req: NextRequest) {
         const nroParte = product.nro_parte?.trim() || null;
 
         // Construir array de imágenes desde la galería
-        const images = extractImageUrls(product);
+        const images = extractImageUrls(product).map(normalizeProviderImageUrl);
 
         // Generar slug único
         let slug = slugify(nombre, { lower: true, strict: true, locale: 'es' });

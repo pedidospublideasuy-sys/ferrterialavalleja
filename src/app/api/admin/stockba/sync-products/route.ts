@@ -42,6 +42,13 @@ function extractImageUrls(product: any): string[] {
         .filter(value => !value.includes('default.png'));
 }
 
+function normalizeImageUrl(value: string): string {
+    if (/^\/\//.test(value)) return `https:${value}`;
+    if (/^https?:\/\//i.test(value)) return value;
+    const base = process.env.STOCK_SYSTEM_API_URL || 'https://stockba.es/api/v1';
+    try { return new URL(value, `${new URL(base).origin}/`).toString(); } catch { return value; }
+}
+
 /** Extract price from StockBA product — price lives in variations[0], not root */
 function extractPrice(sp: any): { price: number; cost: number | null } {
     const rootPrice = Number(sp.selling_price_inc_tax ?? sp.selling_price ?? 0);
@@ -156,7 +163,7 @@ export async function POST(req: NextRequest) {
 
                 // ── Images ────────────────────────────────────────
                 // Ignorar la imagen default de Laravel (producto sin imagen real)
-                const imageUrls = syncImages ? extractImageUrls({ ...sp, ...detail }) : [];
+                const imageUrls = syncImages ? extractImageUrls({ ...sp, ...detail }).map(normalizeImageUrl) : [];
                 const images = imageUrls.length > 0 ? JSON.stringify(imageUrls) : undefined;
 
                 // ── SKU ───────────────────────────────────────────
