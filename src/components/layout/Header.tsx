@@ -59,6 +59,9 @@ export default function Header() {
   const [logoAccent, setLogoAccent] = useState('Ferretería');
   const [logoColor, setLogoColor] = useState('#ffffff');
   const [logoImageUrl, setLogoImageUrl] = useState('');
+  const [logoMode, setLogoMode] = useState('logo_text');
+  const [logoWidth, setLogoWidth] = useState('140');
+  const [logoHeight, setLogoHeight] = useState('40');
   const [colorPrimary, setColorPrimary] = useState('#0b9bd7');
   const [colorSecondary, setColorSecondary] = useState('#315b91');
   const [colorAccent, setColorAccent] = useState('#4a2fc5');
@@ -82,13 +85,16 @@ export default function Header() {
       } catch { /* keep fallback */ }
     };
     fetchMenu();
-    fetch('/api/public/settings?keys=logo_text,logo_accent,logo_color,logo_image_url,color_primary,color_secondary,color_accent')
+    fetch('/api/public/settings?keys=logo_text,logo_accent,logo_color,logo_image_url,logo_mode,logo_width,logo_height,color_primary,color_secondary,color_accent')
       .then(r => r.json())
       .then((data: Record<string, string>) => {
         if (data.logo_text) setLogoText(data.logo_text);
         if (data.logo_accent) setLogoAccent(data.logo_accent);
         if (data.logo_color) setLogoColor(data.logo_color);
         if (data.logo_image_url) setLogoImageUrl(data.logo_image_url);
+        if (data.logo_mode) setLogoMode(data.logo_mode);
+        if (data.logo_width) setLogoWidth(data.logo_width);
+        if (data.logo_height) setLogoHeight(data.logo_height);
         if (data.color_primary) setColorPrimary(data.color_primary);
         if (data.color_secondary) setColorSecondary(data.color_secondary);
         if (data.color_accent) setColorAccent(data.color_accent);
@@ -119,9 +125,10 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             {logoImageUrl ? (
-              <Image src={logoImageUrl} alt={logoText} width={140} height={40}
-                className="object-contain max-h-[40px] w-auto" unoptimized />
+              <Image src={logoImageUrl} alt={logoText} width={Number(logoWidth) || 140} height={Number(logoHeight) || 40}
+                className="object-contain" style={{ width: `${Number(logoWidth) || 140}px`, height: `${Number(logoHeight) || 40}px` }} unoptimized />
             ) : (
+              logoMode !== 'logo' &&
               <div className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none"
                 style={{ fontFamily: 'Arial Black, Arial, sans-serif' }}>
                 <span style={{ color: logoColor }}>{logoAccent}</span>

@@ -20,6 +20,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (body.active !== undefined) updateData.active = body.active;
     if (body.name !== undefined) updateData.name = body.name;
     if (body.phone !== undefined) updateData.phone = body.phone;
+    if (body.company !== undefined) updateData.company = body.company;
+    if (body.email !== undefined) updateData.email = body.email;
 
     const user = await prisma.user.update({
       where: { id },
@@ -27,7 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       select: { id: true, name: true, email: true, role: true, active: true },
     });
 
-    return NextResponse.json(user);
+    return NextResponse.json({ user });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error al actualizar';
     return NextResponse.json({ error: message }, { status: 400 });

@@ -7,7 +7,7 @@ interface Message { role: 'user' | 'model'; text: string; }
 export default function AIChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: '¡Hola! Soy Lithink IA, el asistente de Ba Soluciones. ¿En qué te puedo ayudar hoy?' },
+    { role: 'model', text: '¡Hola! Soy Lithink IA, el asistente de Ferretería Lavalleja. ¿En qué te puedo ayudar hoy?' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);

@@ -130,7 +130,7 @@ function generatePdfHtml(order: any): string {
   ${order.notes ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;margin-bottom:20px;font-size:12px;"><strong>Notas:</strong> ${order.notes}</div>` : ''}
 
   <div class="footer">
-    <p><strong>ImpoTech</strong> — Gracias por tu compra</p>
+    <p><strong>Ferretería Lavalleja</strong> — Gracias por tu compra</p>
     <p style="margin-top:4px;">Este documento es un comprobante de pedido, no constituye factura fiscal.</p>
   </div>
 </body>

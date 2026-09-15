@@ -71,7 +71,7 @@ export default async function AdminDashboard() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Resumen general de Ba Soluciones</p>
+          <p className="text-sm text-gray-500 mt-1">Resumen general de Ferretería Lavalleja</p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/productos/nuevo" className="bg-[#e8850c] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#d47a0b] transition-colors">

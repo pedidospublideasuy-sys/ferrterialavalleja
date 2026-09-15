@@ -30,10 +30,13 @@ export default function AparienciaPage() {
   const [uploadingSlide, setUploadingSlide] = useState<number | null>(null);
 
   // Identidad / Logo
-  const [logoText, setLogoText] = useState('Ba Soluciones');
+  const [logoText, setLogoText] = useState('Ferretería Lavalleja');
   const [logoColor, setLogoColor] = useState('#e8850c');
-  const [logoAccent, setLogoAccent] = useState('Impo');
+  const [logoAccent, setLogoAccent] = useState('Ferretería');
   const [logoImageUrl, setLogoImageUrl] = useState('');
+  const [logoMode, setLogoMode] = useState<'logo' | 'logo_text'>('logo_text');
+  const [logoWidth, setLogoWidth] = useState('140');
+  const [logoHeight, setLogoHeight] = useState('40');
   const [faviconUrl, setFaviconUrl] = useState('');
 
   // Colores del sitio
@@ -46,14 +49,14 @@ export default function AparienciaPage() {
   const [footerDesc, setFooterDesc] = useState('La tienda de insumos de tecnología con mayor servicio y variedad.');
   const [footerPhone1, setFooterPhone1] = useState('2929 0990');
   const [footerPhone2, setFooterPhone2] = useState('2924 9009');
-  const [footerEmail, setFooterEmail] = useState('info@basoluciones.com.uy');
+  const [footerEmail, setFooterEmail] = useState('');
   const [footerHours, setFooterHours] = useState('Lun. a Vie. de 9.30 a 12.30 y de 13.30 a 18.30 hs.');
   const [footerAddress, setFooterAddress] = useState('Bacigalupi 2084 esq. Lima');
   const [footerService, setFooterService] = useState('Lima 1668');
   const [footerBankInfo, setFooterBankInfo] = useState(
     'BROU Cta. Cte. USD 1559417-00001 | SANTANDER Cta. Cte. USD 005100207330 | SCOTIABANK Cta. Cte. USD 2513484200'
   );
-  const [footerCopyright, setFooterCopyright] = useState('Ba Soluciones');
+  const [footerCopyright, setFooterCopyright] = useState('Ferretería Lavalleja');
 
   // Slider
   const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
@@ -80,6 +83,9 @@ export default function AparienciaPage() {
       if (s.logo_color) setLogoColor(s.logo_color);
       if (s.logo_accent) setLogoAccent(s.logo_accent);
       if (s.logo_image_url) setLogoImageUrl(s.logo_image_url);
+      if (s.logo_mode === 'logo' || s.logo_mode === 'logo_text') setLogoMode(s.logo_mode);
+      if (s.logo_width) setLogoWidth(s.logo_width);
+      if (s.logo_height) setLogoHeight(s.logo_height);
       if (s.favicon_url) setFaviconUrl(s.favicon_url);
       if (s.footer_desc) setFooterDesc(s.footer_desc);
       if (s.footer_phone1) setFooterPhone1(s.footer_phone1);
@@ -121,7 +127,8 @@ export default function AparienciaPage() {
   };
 
   const saveIdentidad = () => saveSettings({
-    logo_text: logoText, logo_color: logoColor, logo_accent: logoAccent,
+    logo_text: logoText, logo_color: logoColor, logo_accent: logoAccent, logo_mode: logoMode,
+    logo_width: logoWidth, logo_height: logoHeight,
     favicon_url: faviconUrl, logo_image_url: logoImageUrl,
   }, 'Logo guardado');
 
@@ -268,11 +275,16 @@ export default function AparienciaPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Texto completo</label>
-                <input value={logoText} onChange={e => setLogoText(e.target.value)} className={inputClass} placeholder="Ba Soluciones" />
+                <input value={logoText} onChange={e => setLogoText(e.target.value)} className={inputClass} placeholder="Ferretería Lavalleja" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Prefijo con color</label>
-                <input value={logoAccent} onChange={e => setLogoAccent(e.target.value)} className={inputClass} placeholder="Impo" />
+                <input value={logoAccent} onChange={e => setLogoAccent(e.target.value)} className={inputClass} placeholder="Ferretería" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div><label className="block text-xs font-medium text-gray-600 mb-1">Mostrar</label><select value={logoMode} onChange={e => setLogoMode(e.target.value as 'logo' | 'logo_text')} className={inputClass}><option value="logo_text">Logo + nombre</option><option value="logo">Solo logo</option></select></div>
+                <div><label className="block text-xs font-medium text-gray-600 mb-1">Ancho (px)</label><input type="number" min="40" max="400" value={logoWidth} onChange={e => setLogoWidth(e.target.value)} className={inputClass} /></div>
+                <div><label className="block text-xs font-medium text-gray-600 mb-1">Alto (px)</label><input type="number" min="20" max="120" value={logoHeight} onChange={e => setLogoHeight(e.target.value)} className={inputClass} /></div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Color del acento</label>

@@ -571,7 +571,7 @@ export default function AdminPaginasPage() {
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Vista previa en Google</p>
                       <div className="space-y-0.5">
-                        <p className="text-green-700 text-xs">basoluciones.uy/p/{form.slug}</p>
+                        <p className="text-green-700 text-xs">ferreterialavalleja.com/p/{form.slug}</p>
                         <p className="text-blue-700 text-base font-medium leading-snug">
                           {form.metaTitle || form.title || 'Título de la página'}
                         </p>

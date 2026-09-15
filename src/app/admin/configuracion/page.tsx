@@ -26,11 +26,11 @@ const defaultSettings: { key: string; label: string; type: string; group: string
   { key: 'free_shipping_min', label: 'Envío gratis desde (USD)', type: 'number', group: 'comercio', placeholder: '100' },
   { key: 'hide_prices', label: 'Ocultar precios (mostrar botón "Consultar")', type: 'toggle', group: 'comercio' },
   { key: 'home_carousel_auto', label: 'Carruseles del home: avance automático', type: 'toggle', group: 'comercio' },
-  { key: 'meta_title', label: 'Meta Title', type: 'text', group: 'seo', placeholder: 'Ba Soluciones - Tecnología al mejor precio' },
+  { key: 'meta_title', label: 'Meta Title', type: 'text', group: 'seo', placeholder: 'Ferretería Lavalleja' },
   { key: 'meta_description', label: 'Meta Description', type: 'textarea', group: 'seo', placeholder: 'Tienda de tecnología con los mejores precios...' },
-  { key: 'facebook_url', label: 'Facebook', type: 'text', group: 'social', placeholder: 'https://facebook.com/basoluciones' },
-  { key: 'instagram_url', label: 'Instagram', type: 'text', group: 'social', placeholder: 'https://instagram.com/basoluciones' },
-  { key: 'twitter_url', label: 'Twitter / X', type: 'text', group: 'social', placeholder: 'https://x.com/basoluciones' },
+  { key: 'facebook_url', label: 'Facebook', type: 'text', group: 'social', placeholder: 'https://facebook.com/tu-pagina' },
+  { key: 'instagram_url', label: 'Instagram', type: 'text', group: 'social', placeholder: 'https://instagram.com/tu-cuenta' },
+  { key: 'twitter_url', label: 'Twitter / X', type: 'text', group: 'social', placeholder: 'https://x.com/tu-cuenta' },
   { key: 'footer_desc', label: 'Descripción del footer', type: 'text', group: 'footer', placeholder: 'La tienda de insumos de tecnología...' },
   { key: 'footer_phone1', label: 'Teléfono 1', type: 'text', group: 'footer', placeholder: '2929 0990' },
   { key: 'footer_phone2', label: 'Teléfono 2', type: 'text', group: 'footer', placeholder: '2924 9009' },
@@ -40,7 +40,7 @@ const defaultSettings: { key: string; label: string; type: string; group: string
   { key: 'footer_service', label: 'Dirección (Service)', type: 'text', group: 'footer', placeholder: 'Calle 5678' },
   { key: 'footer_price_disclaimer', label: 'Texto de precios / impuestos', type: 'text', group: 'footer', placeholder: 'Los precios son en dólares americanos y no incluyen IVA.' },
   { key: 'footer_bank_info', label: 'Cuentas bancarias (separadas por |)', type: 'textarea', group: 'footer', placeholder: 'BROU C. Corriente dólares Nº 1234 | SANTANDER C. Corriente dólares Nº 5678' },
-  { key: 'footer_copyright', label: 'Nombre en Copyright', type: 'text', group: 'footer', placeholder: 'BA Soluciones' },
+  { key: 'footer_copyright', label: 'Nombre en Copyright', type: 'text', group: 'footer', placeholder: 'Ferretería Lavalleja' },
 ];
 
 export default function AdminConfiguracion() {
