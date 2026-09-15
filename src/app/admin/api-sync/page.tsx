@@ -138,13 +138,23 @@ export default function AdminApiSync() {
   const syncNow = async (sourceId: string) => {
     toast.loading('Sincronizando...', { id: 'sync' });
     try {
-      const res = await fetch(`/api/admin/api-sources/${sourceId}/sync`, { method: 'POST' });
-      if (!res.ok) throw new Error('Error');
-      const data = await res.json();
-      toast.success(`Sincronización completada: ${data.synced} productos sincronizados, ${data.failed} fallidos`, { id: 'sync' });
+      let page = 1;
+      let totalSynced = 0;
+      let totalFailed = 0;
+      let totalPages = 1;
+      do {
+        const res = await fetch(`/api/admin/api-sources/${sourceId}/sync?page=${page}`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error de sincronización');
+        totalSynced += data.synced || 0;
+        totalFailed += data.failed || 0;
+        totalPages = data.totalPages || 1;
+        page++;
+      } while (page <= totalPages);
+      toast.success(`Sincronización completada: ${totalSynced} productos sincronizados, ${totalFailed} fallidos`, { id: 'sync' });
       load();
-    } catch {
-      toast.error('Error al sincronizar', { id: 'sync' });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al sincronizar', { id: 'sync' });
     }
   };
 

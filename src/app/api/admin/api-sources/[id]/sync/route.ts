@@ -60,40 +60,28 @@ async function fetchWooCommerceProducts(
   baseUrl: string,
   consumerKey: string,
   consumerSecret: string,
-): Promise<WooProduct[]> {
+  page: number,
+  perPage: number,
+): Promise<{ products: WooProduct[]; totalPages: number }> {
   // Normalizar URL base – quitar trailing slash
   const storeUrl = baseUrl.replace(/\/+$/, '');
-  const allProducts: WooProduct[] = [];
-  let page = 1;
-  const perPage = 100; // máximo de WooCommerce
+  const url = `${storeUrl}/wp-json/wc/v3/products?per_page=${perPage}&page=${page}&status=publish`;
 
-  while (true) {
-    const url = `${storeUrl}/wp-json/wc/v3/products?per_page=${perPage}&page=${page}&status=publish`;
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': 'Basic ' + Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64'),
+      'Content-Type': 'application/json',
+    },
+  });
 
-    const res = await fetch(url, {
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64'),
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      throw new Error(`WooCommerce API error ${res.status}: ${txt.slice(0, 200)}`);
-    }
-
-    const products: WooProduct[] = await res.json();
-    if (products.length === 0) break;
-
-    allProducts.push(...products);
-
-    // Verificar si hay más páginas
-    const totalPages = parseInt(res.headers.get('x-wp-totalpages') || '1');
-    if (page >= totalPages) break;
-    page++;
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`WooCommerce API error ${res.status}: ${txt.slice(0, 200)}`);
   }
 
-  return allProducts;
+  const products: WooProduct[] = await res.json();
+
+  return { products, totalPages: parseInt(res.headers.get('x-wp-totalpages') || '1') };
 }
 
 async function fetchWooCommerceVariations(baseUrl: string, key: string, secret: string, productId: number): Promise<WooVariation[]> {
@@ -305,6 +293,8 @@ async function syncGenericProducts(
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   const { id } = await params;
+  const requestUrl = new URL(req.url);
+  const page = Math.max(1, Number(requestUrl.searchParams.get('page') || '1'));
 
   const source = await prisma.apiSource.findUnique({ where: { id } });
   if (!source) return NextResponse.json({ error: 'API no encontrada' }, { status: 404 });
@@ -317,6 +307,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let synced = 0;
     let failed = 0;
     let total = 0;
+    let totalPages = 1;
 
     if (source.sourceType === 'woocommerce') {
       // ── WooCommerce sync ──
@@ -324,11 +315,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         throw new Error('WooCommerce requiere Consumer Key y Consumer Secret');
       }
 
-      const products = await fetchWooCommerceProducts(
+      const batch = await fetchWooCommerceProducts(
         source.baseUrl,
         source.apiKey,
         source.apiSecret,
+        page,
+        10,
       );
+      const products = batch.products;
+      totalPages = batch.totalPages;
       total = products.length;
 
       for (const item of products) {
@@ -341,8 +336,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             await syncWooCommerceVariation(variation, item, source.name, item.categories?.[0]?.name);
             synced++;
           }
-        } catch {
+        } catch (error) {
           failed++;
+          console.error(`[WooCommerce sync] Producto ${item.id}:`, error);
         }
       }
     } else {
@@ -369,7 +365,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       data: { lastSync: new Date() },
     });
 
-    return NextResponse.json({ synced, failed, total });
+    return NextResponse.json({ synced, failed, total, page, totalPages, done: page >= totalPages });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error de sincronización';
     await prisma.syncLog.update({
