@@ -27,6 +27,7 @@ interface ProductCardProps {
     category?: { name: string } | null;
     brand?: { name: string } | null;
     currency?: string | null;
+    sourceApi?: string | null;
   };
 }
 
@@ -54,7 +55,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   try { images = JSON.parse(product.images || '[]'); } catch { }
   const mainImage = images[0] || null;
 
-  const productCurrency = (product.currency || 'UYU') as 'USD' | 'UYU';
+  const productCurrency = (product.sourceApi ? 'UYU' : product.currency || 'UYU') as 'USD' | 'UYU';
 
   const discount = product.comparePrice && product.comparePrice > product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)

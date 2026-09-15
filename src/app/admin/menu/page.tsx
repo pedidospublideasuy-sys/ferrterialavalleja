@@ -41,6 +41,7 @@ export default function AdminMenu() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [itemForm, setItemForm] = useState(BLANK_ITEM);
   const [formLocation, setFormLocation] = useState<string>('header');
+  const [footerTitles, setFooterTitles] = useState({ nosotros: 'Nosotros', tienda: 'Tienda', ayuda: 'Ayuda' });
 
   const load = useCallback(async () => {
     try {
@@ -75,6 +76,11 @@ export default function AdminMenu() {
         try {
           setHamburgerCategories(parseSelection(values.hamburger_categories));
         } catch { setHamburgerCategories([]); }
+        setFooterTitles({
+          nosotros: values.footer_nosotros_title || 'Nosotros',
+          tienda: values.footer_tienda_title || 'Tienda',
+          ayuda: values.footer_ayuda_title || 'Ayuda',
+        });
       }
     } catch { toast.error('Error al cargar menÃº'); }
     setLoading(false);
@@ -111,6 +117,29 @@ export default function AdminMenu() {
       toast.success('MenÃº de categorÃ­as guardado');
     } catch { toast.error('Error al guardar'); }
     setSaving(false);
+  };
+
+  const saveFooterTitles = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: {
+            footer_nosotros_title: footerTitles.nosotros,
+            footer_tienda_title: footerTitles.tienda,
+            footer_ayuda_title: footerTitles.ayuda,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success('Títulos del footer guardados');
+    } catch {
+      toast.error('Error al guardar títulos');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ======= ITEMS (header custom + footer) =======
@@ -342,7 +371,7 @@ export default function AdminMenu() {
               <PlusIcon className="w-4 h-4" /> Nuevo link
             </button>
           </div>
-          {showItemForm && formLocation === 'header' && <ItemForm />}
+          {showItemForm && formLocation === 'header' && ItemForm()}
           <div className="divide-y">
             {menuItems.map(item => (
               <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
@@ -365,6 +394,15 @@ export default function AdminMenu() {
       {tab === 'footer' && (
         <div className="space-y-4">
           <p className="text-sm text-gray-500">Edita los links de cada columna del footer. Los cambios se reflejan en tiempo real en la tienda.</p>
+          <div className="bg-white rounded-xl shadow-sm p-4">
+            <h3 className="font-semibold text-gray-800 mb-3">Títulos de las columnas</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <input value={footerTitles.nosotros} onChange={e => setFooterTitles(t => ({ ...t, nosotros: e.target.value }))} className="border rounded-lg px-3 py-2 text-sm" placeholder="Nosotros" />
+              <input value={footerTitles.tienda} onChange={e => setFooterTitles(t => ({ ...t, tienda: e.target.value }))} className="border rounded-lg px-3 py-2 text-sm" placeholder="Tienda" />
+              <input value={footerTitles.ayuda} onChange={e => setFooterTitles(t => ({ ...t, ayuda: e.target.value }))} className="border rounded-lg px-3 py-2 text-sm" placeholder="Ayuda" />
+            </div>
+            <button onClick={saveFooterTitles} disabled={saving} className="mt-3 bg-[#e8850c] text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50">Guardar títulos</button>
+          </div>
           {FOOTER_SECTIONS.map(section => {
             const items = footerItems.filter(i => i.location === section.key);
             const isAdding = showItemForm && formLocation === section.key && !editingItem;
@@ -380,7 +418,7 @@ export default function AdminMenu() {
                     <PlusIcon className="w-4 h-4" /> Agregar
                   </button>
                 </div>
-                {(isAdding || isEditing) && <ItemForm />}
+                {(isAdding || isEditing) && ItemForm()}
                 <div className="divide-y">
                   {items.map(item => (
                     <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
