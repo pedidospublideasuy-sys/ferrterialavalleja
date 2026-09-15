@@ -177,7 +177,12 @@ export default function CategoryGrid() {
         const parsed = JSON.parse(publicSettings.home_categories || '[]');
         if (Array.isArray(parsed)) selected = parsed.filter((slug): slug is string => typeof slug === 'string');
       } catch { /* use defaults when not configured */ }
-      if (!selected.length || !Array.isArray(dbCategories)) return;
+      if (!Array.isArray(dbCategories)) return;
+      if (!Object.prototype.hasOwnProperty.call(publicSettings, 'home_categories')) return;
+      if (!selected.length) {
+        setCategories([]);
+        return;
+      }
       const flat = dbCategories.flatMap((category: Category & { children?: Category[] }) => [category, ...(category.children || [])]);
       const configured: Category[] = [];
       selected.forEach(slug => {
