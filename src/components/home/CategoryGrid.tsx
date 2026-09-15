@@ -14,6 +14,7 @@ interface Category {
   icon: React.ReactNode;
   subs: SubCategory[];
   image?: string;
+  id?: string;
 }
 
 function IconAudio() {
@@ -100,7 +101,7 @@ function IconArribando() {
   );
 }
 
-const categories: Category[] = [
+const DEFAULT_CATEGORIES: Category[] = [
   {
     name: 'Audio Imagen', slug: 'audio', icon: <IconAudio />,
     subs: [{ name: 'Auriculares', slug: 'auriculares' }, { name: 'Parlantes', slug: 'parlantes' }, { name: 'Micrófonos', slug: 'microfonos' }, { name: 'TV y Video', slug: 'tv-video' }],
@@ -160,9 +161,39 @@ const categories: Category[] = [
 ];
 
 export default function CategoryGrid() {
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [active, setActive] = useState<number | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/public/settings?keys=home_categories').then(r => r.ok ? r.json() : {}),
+      fetch('/api/categories').then(r => r.ok ? r.json() : []),
+    ]).then(([settings, dbCategories]) => {
+      const publicSettings = settings as { home_categories?: string };
+      let selected: string[] = [];
+      try {
+        const parsed = JSON.parse(publicSettings.home_categories || '[]');
+        if (Array.isArray(parsed)) selected = parsed.filter((slug): slug is string => typeof slug === 'string');
+      } catch { /* use defaults when not configured */ }
+      if (!selected.length || !Array.isArray(dbCategories)) return;
+      const flat = dbCategories.flatMap((category: Category & { children?: Category[] }) => [category, ...(category.children || [])]);
+      const configured: Category[] = [];
+      selected.forEach(slug => {
+        const dbCategory = flat.find(category => category.slug === slug);
+        const fallback = DEFAULT_CATEGORIES.find(category => category.slug === slug);
+        if (!dbCategory && !fallback) return;
+        configured.push({
+          ...(fallback || { name: dbCategory!.name, slug, icon: <span className="text-2xl">▦</span>, subs: [] }),
+          name: dbCategory?.name || fallback!.name,
+          image: dbCategory?.image || fallback?.image,
+          subs: fallback?.subs || [],
+        });
+      });
+      setCategories(configured);
+    }).catch(() => { /* keep defaults */ });
+  }, []);
 
   const handleEnter = (i: number) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -191,7 +222,8 @@ export default function CategoryGrid() {
               href={`/productos?cat=${cat.slug}`}
               className={`flex flex-col gap-1 items-center justify-center min-w-[86px] h-[68px] text-gray-500 hover:text-[#4a2fc5] transition-colors ${active === i ? 'text-[#4a2fc5]' : ''}`}
             >
-              {cat.icon}
+              {cat.image ? <img src={cat.image} alt="" className="h-8 w-8 object-contain" /> : cat.icon}
+              <span className="max-w-[90px] truncate text-[10px] text-center">{cat.name}</span>
             </Link>
           </div>
         ))}

@@ -3,9 +3,19 @@ import prisma from '@/lib/prisma';
 
 // Devuelve todas las categorías que tienen productos, con hasta 24 productos c/u
 export async function GET() {
-    // 1. Traer TODAS las categorías activas (padre e hijas)
+    const homeSetting = await prisma.siteSetting.findUnique({ where: { key: 'home_categories' } });
+    let selectedSlugs: string[] = [];
+    if (homeSetting?.value) {
+        try {
+            const parsed = JSON.parse(homeSetting.value);
+            if (Array.isArray(parsed)) selectedSlugs = parsed.filter((slug): slug is string => typeof slug === 'string');
+        } catch { /* invalid setting means no home carousels */ }
+    }
+    if (selectedSlugs.length === 0) return NextResponse.json([]);
+
+    // Solo las categorías elegidas desde el panel.
     const allCats = await prisma.category.findMany({
-        where: { active: true },
+        where: { active: true, slug: { in: selectedSlugs } },
         select: { id: true, name: true, slug: true, sortOrder: true, parentId: true },
         orderBy: { sortOrder: 'asc' },
     });

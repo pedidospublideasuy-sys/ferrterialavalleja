@@ -8,6 +8,7 @@ interface Category {
   name: string;
   slug: string;
   description: string | null;
+  image: string | null;
   icon: string | null;
   parentId: string | null;
   sortOrder: number;
@@ -21,7 +22,7 @@ export default function AdminCategorias() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Category | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', icon: '', parentId: '', sortOrder: 0, active: true });
+  const [form, setForm] = useState({ name: '', description: '', image: '', icon: '', parentId: '', sortOrder: 0, active: true });
 
   const load = useCallback(async () => {
     const res = await fetch('/api/admin/categories');
@@ -33,7 +34,7 @@ export default function AdminCategorias() {
   useEffect(() => { load(); }, [load]);
 
   const resetForm = () => {
-    setForm({ name: '', description: '', icon: '', parentId: '', sortOrder: 0, active: true });
+    setForm({ name: '', description: '', image: '', icon: '', parentId: '', sortOrder: 0, active: true });
     setEditing(null);
     setShowForm(false);
   };
@@ -43,6 +44,7 @@ export default function AdminCategorias() {
     setForm({
       name: cat.name,
       description: cat.description || '',
+      image: cat.image || '',
       icon: cat.icon || '',
       parentId: cat.parentId || '',
       sortOrder: cat.sortOrder,
@@ -82,6 +84,15 @@ export default function AdminCategorias() {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    const data = new FormData();
+    data.append('file', file);
+    const res = await fetch('/api/admin/upload-banner', { method: 'POST', body: data });
+    const result = await res.json();
+    if (!res.ok || !result.url) throw new Error(result.error || 'No se pudo subir la imagen');
+    setForm(f => ({ ...f, image: result.url }));
+  };
+
   const parents = categories.filter(c => !c.parentId);
   const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30";
 
@@ -115,6 +126,12 @@ export default function AdminCategorias() {
                 <option value="">Ninguna (raíz)</option>
                 {parents.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Imagen o URL del ícono</label>
+              <input type="url" value={form.image} onChange={e => setForm(f => ({ ...f, image: e.target.value }))} className={inputClass} placeholder="https://..." />
+              <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="mt-2 block w-full text-xs"
+                onChange={e => { const file = e.target.files?.[0]; if (file) handleImageUpload(file).catch(err => toast.error(err instanceof Error ? err.message : 'Error al subir imagen')); }} />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Orden</label>

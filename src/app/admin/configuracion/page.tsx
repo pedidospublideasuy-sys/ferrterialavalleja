@@ -11,6 +11,7 @@ interface HomeSection {
   content: string;
   enabled: boolean;
 }
+interface CategoryOption { id: string; name: string; slug: string; children?: CategoryOption[] }
 
 const defaultSettings: { key: string; label: string; type: string; group: string; placeholder?: string }[] = [
   { key: 'site_name', label: 'Nombre del sitio', type: 'text', group: 'general', placeholder: 'Ba Soluciones' },
@@ -47,15 +48,27 @@ export default function AdminConfiguracion() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [homeCategories, setHomeCategories] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/settings');
+      const [res, categoriesRes] = await Promise.all([
+        fetch('/api/admin/settings'),
+        fetch('/api/admin/categories'),
+      ]);
+      if (categoriesRes.ok) setCategories(await categoriesRes.json());
       if (res.ok) {
         const data: Setting[] = await res.json();
         const map: Record<string, string> = {};
         for (const s of data) map[s.key] = s.value;
         setSettings(map);
+        if (map.home_categories) {
+          try {
+            const parsed = JSON.parse(map.home_categories);
+            if (Array.isArray(parsed)) setHomeCategories(parsed);
+          } catch { /* keep empty */ }
+        }
         if (map.home_sections) {
           try {
             const parsed = JSON.parse(map.home_sections);
@@ -76,7 +89,13 @@ export default function AdminConfiguracion() {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: { ...settings, home_sections: JSON.stringify(homeSections) } }),
+        body: JSON.stringify({
+          settings: {
+            ...settings,
+            home_sections: JSON.stringify(homeSections),
+            home_categories: JSON.stringify(homeCategories),
+          },
+        }),
       });
       if (!res.ok) throw new Error('Error');
       toast.success('Configuración guardada');
@@ -156,34 +175,51 @@ export default function AdminConfiguracion() {
                 </div>
               ))}
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="font-bold text-sm text-gray-800 mb-1">🏠 Secciones del home</h2>
-                <p className="text-xs text-gray-400 mb-4">Agregá contacto, mapa, reseñas o widgets sin tocar el código.</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {(['contact', 'map', 'reviews', 'embed', 'html'] as HomeSection['type'][]).map(type => (
-                    <button key={type} type="button" onClick={() => addHomeSection(type)}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-xs hover:border-[#e8850c]">
-                      + {type === 'contact' ? 'Contacto' : type === 'map' ? 'Mapa' : type === 'reviews' ? 'Reseñas Google' : type === 'embed' ? 'Widget' : 'HTML'}
-                    </button>
-                  ))}
-                </div>
-                <div className="space-y-3">
-                  {homeSections.map((section, index) => (
-                    <div key={section.id} className="border border-gray-200 rounded-lg p-3">
-                      <div className="flex gap-2 items-center mb-2">
-                        <input className={inputClass} value={section.title} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, title: e.target.value } : s))} />
-                        <label className="text-xs whitespace-nowrap"><input type="checkbox" checked={section.enabled} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s))} /> Visible</label>
-                        <button type="button" className="text-red-500 text-xs" onClick={() => setHomeSections(prev => prev.filter((_, i) => i !== index))}>Eliminar</button>
-                      </div>
-                      <textarea className={inputClass} rows={section.type === 'contact' || section.type === 'html' ? 4 : 2} value={section.content} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, content: e.target.value } : s))} placeholder={section.type === 'map' || section.type === 'reviews' || section.type === 'embed' ? 'URL de Google Maps o widget' : 'Contenido'} />
-                      <p className="text-[10px] text-gray-400 mt-1">{section.type === 'html' ? 'HTML básico; no se ejecutan scripts arbitrarios.' : section.type === 'embed' ? 'Se muestra como iframe.' : ''}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         ))}
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-bold text-sm text-gray-800 mb-1">🏠 Contenido del home</h2>
+          <p className="text-xs text-gray-400 mb-4">Elegí qué categorías y secciones aparecen en la portada. El resto queda en Tienda.</p>
+          <h3 className="text-xs font-semibold text-gray-700 mb-2">Categorías destacadas y carruseles de productos</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+            {categories.flatMap(category => [category, ...(category.children || [])]).map(category => (
+              <label key={category.id} className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={homeCategories.includes(category.slug)}
+                  onChange={e => setHomeCategories(prev => e.target.checked
+                    ? [...prev, category.slug]
+                    : prev.filter(slug => slug !== category.slug))}
+                />
+                <span>{category.name}</span>
+              </label>
+            ))}
+          </div>
+          <h3 className="text-xs font-semibold text-gray-700 mb-2">Secciones adicionales</h3>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {(['contact', 'map', 'reviews', 'embed', 'html'] as HomeSection['type'][]).map(type => (
+              <button key={type} type="button" onClick={() => addHomeSection(type)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-xs hover:border-[#e8850c]">
+                + {type === 'contact' ? 'Contacto' : type === 'map' ? 'Mapa' : type === 'reviews' ? 'Reseñas Google' : type === 'embed' ? 'Widget' : 'HTML'}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-3">
+            {homeSections.map((section, index) => (
+              <div key={section.id} className="border border-gray-200 rounded-lg p-3">
+                <div className="flex gap-2 items-center mb-2">
+                  <input className={inputClass} value={section.title} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, title: e.target.value } : s))} />
+                  <label className="text-xs whitespace-nowrap"><input type="checkbox" checked={section.enabled} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s))} /> Visible</label>
+                  <button type="button" className="text-red-500 text-xs" onClick={() => setHomeSections(prev => prev.filter((_, i) => i !== index))}>Eliminar</button>
+                </div>
+                <textarea className={inputClass} rows={section.type === 'contact' || section.type === 'html' ? 4 : 2} value={section.content} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, content: e.target.value } : s))} placeholder={section.type === 'map' || section.type === 'reviews' || section.type === 'embed' ? 'URL de Google Maps o widget' : 'Contenido'} />
+                <p className="text-[10px] text-gray-400 mt-1">{section.type === 'html' ? 'HTML básico; no se ejecutan scripts arbitrarios.' : section.type === 'embed' ? 'Se muestra como iframe.' : ''}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <button type="submit" disabled={saving}

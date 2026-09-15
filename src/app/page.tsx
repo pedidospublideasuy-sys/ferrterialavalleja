@@ -7,8 +7,8 @@ import HomeSections from '@/components/home/HomeSections';
 export default function Home() {
   return (
     <div className="store-shell">
-      <section className="mx-auto w-full max-w-[1440px]">
-        <div className="h-[210px] sm:h-[300px] md:h-[390px] overflow-hidden">
+      <section className="w-full">
+        <div className="h-[210px] sm:h-[300px] md:h-[430px] overflow-hidden">
           <HeroBanner />
         </div>
         <CategoryGrid />
