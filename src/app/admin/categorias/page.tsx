@@ -132,6 +132,12 @@ export default function AdminCategorias() {
               <input type="url" value={form.image} onChange={e => setForm(f => ({ ...f, image: e.target.value }))} className={inputClass} placeholder="https://..." />
               <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="mt-2 block w-full text-xs"
                 onChange={e => { const file = e.target.files?.[0]; if (file) handleImageUpload(file).catch(err => toast.error(err instanceof Error ? err.message : 'Error al subir imagen')); }} />
+              {form.image && (
+                <div className="mt-2 flex items-center gap-2">
+                 <img src={form.image} alt="Vista previa" className="h-12 w-20 rounded border object-cover" />
+                 <button type="button" onClick={() => setForm(f => ({ ...f, image: '' }))} className="text-xs text-red-600 hover:underline">Quitar imagen</button>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Orden</label>

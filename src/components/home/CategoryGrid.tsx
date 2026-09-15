@@ -162,9 +162,8 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 export default function CategoryGrid() {
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
-  const [active, setActive] = useState<number | null>(null);
+  const [current, setCurrent] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -200,75 +199,46 @@ export default function CategoryGrid() {
     }).catch(() => { /* keep defaults */ });
   }, []);
 
-  const handleEnter = (i: number) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setActive(i);
-  };
-
-  const handleLeave = () => {
-    timeoutRef.current = setTimeout(() => setActive(null), 150);
-  };
-
   useEffect(() => {
-    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
-  }, []);
+    if (categories.length < 2) return;
+    const timer = setInterval(() => {
+      setCurrent(value => (value + 1) % categories.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [categories.length]);
+
+  const scroll = (direction: number) => {
+    navRef.current?.scrollBy({ left: direction * 260, behavior: 'smooth' });
+  };
 
   return (
-    <nav ref={navRef} className="relative z-40 bg-white border-x border-b border-gray-100" onMouseLeave={handleLeave}>
+    <nav className="relative z-40 bg-white border-x border-b border-gray-100">
       <div className="store-section-title mx-4 mt-5 mb-2">Categorías destacadas</div>
-      <div className="max-w-7xl mx-auto flex items-center justify-start overflow-x-auto px-2 py-2">
+      <div className="relative max-w-7xl mx-auto px-8 pb-5">
+        <button onClick={() => scroll(-1)} aria-label="Categorías anteriores" className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 text-xl text-gray-500 shadow-md hover:text-[#4a2fc5]">‹</button>
+        <div ref={navRef} className="flex gap-4 overflow-x-auto scroll-smooth px-1 py-2 [scrollbar-width:none]">
         {categories.map((cat, i) => (
-          <div
+          <Link
             key={cat.slug}
-            className="relative"
-            onMouseEnter={() => handleEnter(i)}
+            href={`/productos?cat=${cat.slug}`}
+            onClick={() => setCurrent(i)}
+            className={`group relative min-w-[180px] flex-1 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-all hover:-translate-y-1 hover:border-[#4a2fc5] hover:shadow-lg ${i === current ? 'ring-2 ring-[#4a2fc5]/30' : ''}`}
           >
-            <Link
-              href={`/productos?cat=${cat.slug}`}
-              className={`flex flex-col gap-1 items-center justify-center min-w-[86px] h-[68px] text-gray-500 hover:text-[#4a2fc5] transition-colors ${active === i ? 'text-[#4a2fc5]' : ''}`}
-            >
-              {cat.image ? <img src={cat.image} alt="" className="h-8 w-8 object-contain" /> : cat.icon}
-              <span className="max-w-[90px] truncate text-[10px] text-center">{cat.name}</span>
-            </Link>
-          </div>
-        ))}
-      </div>
-
-      {/* Dropdown */}
-      {active !== null && (
-        <div
-          className="absolute left-0 right-0 z-50 bg-[#315b91] shadow-xl"
-          onMouseEnter={() => handleEnter(active)}
-          onMouseLeave={handleLeave}
-        >
-          <div className="max-w-7xl mx-auto flex">
-            <div className="py-4 px-8 flex-1">
-              <h3 className="text-white font-bold text-[15px] mb-3 pb-2 border-b border-white/20">
-                {categories[active].name}
-              </h3>
-              <ul className="space-y-1.5">
-                {categories[active].subs.map((sub) => (
-                  <li key={sub.slug}>
-                    <Link
-                      href={`/productos?cat=${sub.slug}`}
-                      className="text-white/90 hover:text-white text-[13px] hover:underline block py-0.5"
-                    >
-                      {sub.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="w-[240px] flex items-center justify-center p-6">
-              <div className="w-[160px] h-[160px] rounded-xl bg-white/10 flex items-center justify-center">
-                <div className="text-white/40 scale-[2.5]">
-                  {categories[active].icon}
-                </div>
+            <div className="relative h-[110px] w-full bg-gray-100">
+              {cat.image ? (
+                <img src={cat.image} alt={cat.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <div className="flex h-full items-center justify-center text-[#4a2fc5] opacity-70">{cat.icon}</div>
+              )}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-8">
+                <span className="text-sm font-semibold text-white">{cat.name}</span>
               </div>
             </div>
-          </div>
+          </Link>
+        ))}
         </div>
-      )}
+        <button onClick={() => scroll(1)} aria-label="Siguientes categorías" className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 text-xl text-gray-500 shadow-md hover:text-[#4a2fc5]">›</button>
+      </div>
     </nav>
   );
 }
