@@ -18,7 +18,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const updateData: Record<string, unknown> = {};
     if (body.name !== undefined) {
       updateData.name = body.name;
-      updateData.slug = slugify(body.name, { lower: true, strict: true });
+      const baseSlug = slugify(body.name, { lower: true, strict: true }) || 'marca';
+      let slug = baseSlug;
+      let suffix = 2;
+      while (true) {
+        const conflict = await prisma.brand.findUnique({ where: { slug } });
+        if (!conflict || conflict.id === id) break;
+        slug = `${baseSlug}-${suffix++}`;
+      }
+      updateData.slug = slug;
     }
     if (body.logo !== undefined) updateData.logo = body.logo;
     if (body.website !== undefined) updateData.website = body.website;

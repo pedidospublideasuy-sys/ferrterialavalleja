@@ -25,7 +25,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const slug = slugify(body.name, { lower: true, strict: true });
+    const baseSlug = slugify(body.name, { lower: true, strict: true }) || 'marca';
+    let slug = baseSlug;
+    let suffix = 2;
+    while (await prisma.brand.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${suffix++}`;
+    }
 
     const brand = await prisma.brand.create({
       data: {
