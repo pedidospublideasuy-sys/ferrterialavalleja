@@ -79,7 +79,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="p-5 border-b border-gray-800">
           <Link href="/admin" className="block">
             <h2 className="text-lg font-black tracking-tight">
-              <span className="text-[#e8850c]">Impo</span>Tech
+              <span className="text-[#e8850c]">Ferretería</span> Lavalleja
             </h2>
             <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">Panel de Administración</p>
           </Link>
