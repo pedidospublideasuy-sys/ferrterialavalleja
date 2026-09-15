@@ -343,7 +343,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         page,
         50,
       );
-      const products = batch.products;
+      const products = batch.products.filter((item) => normalizeImageUrls(item.images).length > 0);
       totalPages = batch.totalPages;
       total = products.length;
 
@@ -353,6 +353,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           let itemSynced = 1;
           const variations = await fetchWooCommerceVariations(source.baseUrl, source.apiKey!, source.apiSecret!, item.id);
           for (const variation of variations) {
+            if (normalizeImageUrls(variation.image?.src ? [variation.image.src] : item.images).length === 0) {
+              continue;
+            }
             await syncWooCommerceVariation(variation, item, source.name, source.baseUrl, item.categories?.[0]?.name);
             itemSynced++;
           }
