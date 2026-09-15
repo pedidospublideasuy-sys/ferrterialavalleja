@@ -168,7 +168,7 @@ export default function CategoryGrid() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/public/settings?keys=home_carousel_categories,home_category_title_bg,home_category_title_color,home_category_title_width').then(r => r.ok ? r.json() : {}),
+      fetch('/api/public/settings?keys=home_carousel_categories,home_category_title_bg,home_category_title_color,home_category_title_width', { cache: 'no-store' }).then(r => r.ok ? r.json() : {}),
       fetch('/api/categories').then(r => r.ok ? r.json() : []),
     ]).then(([settings, dbCategories]) => {
       const publicSettings = settings as { home_carousel_categories?: string; home_category_title_bg?: string; home_category_title_color?: string; home_category_title_width?: string };

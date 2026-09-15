@@ -140,11 +140,12 @@ export default function AparienciaPage() {
   const saveSettings = async (settings: Record<string, string>, label = 'Guardado') => {
     setSaving(true);
     try {
-      await fetch('/api/admin/settings', {
+      const response = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings }),
       });
+      if (!response.ok) throw new Error('No se pudo guardar la configuración');
       toast.success(label);
     } catch { toast.error('Error guardando'); }
     setSaving(false);

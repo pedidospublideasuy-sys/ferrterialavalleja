@@ -51,7 +51,7 @@ function CarouselSection({
   const isPaused = useRef(false);
 
   useEffect(() => {
-    fetch('/api/public/settings?keys=home_products_title_bg,home_products_title_color')
+    fetch('/api/public/settings?keys=home_products_title_bg,home_products_title_color', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : {})
       .then((data: Record<string, string>) => setTitleColors({
         background: data.home_products_title_bg || '#2a2a2a',
