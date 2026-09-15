@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 interface SubCategory {
   name: string;
@@ -179,8 +178,9 @@ export default function CategoryGrid() {
   }, []);
 
   return (
-    <nav ref={navRef} className="relative z-40 bg-[#404040]" onMouseLeave={handleLeave}>
-      <div className="max-w-7xl mx-auto flex items-center justify-center">
+    <nav ref={navRef} className="relative z-40 bg-white border-x border-b border-gray-100" onMouseLeave={handleLeave}>
+      <div className="store-section-title mx-4 mt-5 mb-2">Categorías destacadas</div>
+      <div className="max-w-7xl mx-auto flex items-center justify-start overflow-x-auto px-2 py-2">
         {categories.map((cat, i) => (
           <div
             key={cat.slug}
@@ -189,7 +189,7 @@ export default function CategoryGrid() {
           >
             <Link
               href={`/productos?cat=${cat.slug}`}
-              className={`flex items-center justify-center w-[72px] h-[52px] text-gray-300 hover:text-white transition-colors ${active === i ? 'bg-[#1a8a7d] text-white' : ''}`}
+              className={`flex flex-col gap-1 items-center justify-center min-w-[86px] h-[68px] text-gray-500 hover:text-[#4a2fc5] transition-colors ${active === i ? 'text-[#4a2fc5]' : ''}`}
             >
               {cat.icon}
             </Link>
@@ -200,7 +200,7 @@ export default function CategoryGrid() {
       {/* Dropdown */}
       {active !== null && (
         <div
-          className="absolute left-0 right-0 z-50 bg-[#1a8a7d] shadow-xl"
+          className="absolute left-0 right-0 z-50 bg-[#315b91] shadow-xl"
           onMouseEnter={() => handleEnter(active)}
           onMouseLeave={handleLeave}
         >

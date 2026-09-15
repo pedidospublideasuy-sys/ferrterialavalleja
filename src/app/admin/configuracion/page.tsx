@@ -4,6 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 
 interface Setting { key: string; value: string }
+interface HomeSection {
+  id: string;
+  type: 'contact' | 'map' | 'reviews' | 'embed' | 'html';
+  title: string;
+  content: string;
+  enabled: boolean;
+}
 
 const defaultSettings: { key: string; label: string; type: string; group: string; placeholder?: string }[] = [
   { key: 'site_name', label: 'Nombre del sitio', type: 'text', group: 'general', placeholder: 'Ba Soluciones' },
@@ -39,6 +46,7 @@ export default function AdminConfiguracion() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -48,6 +56,12 @@ export default function AdminConfiguracion() {
         const map: Record<string, string> = {};
         for (const s of data) map[s.key] = s.value;
         setSettings(map);
+        if (map.home_sections) {
+          try {
+            const parsed = JSON.parse(map.home_sections);
+            if (Array.isArray(parsed)) setHomeSections(parsed);
+          } catch { /* keep empty */ }
+        }
       }
     } catch { /* empty */ }
     setLoading(false);
@@ -62,7 +76,7 @@ export default function AdminConfiguracion() {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings }),
+        body: JSON.stringify({ settings: { ...settings, home_sections: JSON.stringify(homeSections) } }),
       });
       if (!res.ok) throw new Error('Error');
       toast.success('Configuración guardada');
@@ -82,6 +96,19 @@ export default function AdminConfiguracion() {
   ];
 
   const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30";
+  const addHomeSection = (type: HomeSection['type']) => {
+    const defaults: Record<HomeSection['type'], string> = {
+      contact: 'Teléfono, email, dirección y horarios',
+      map: 'https://www.google.com/maps/embed?pb=',
+      reviews: 'https://www.google.com/maps',
+      embed: 'https://example.com/widget',
+      html: '<p>Contenido de la sección</p>',
+    };
+    setHomeSections(prev => [...prev, {
+      id: `${type}-${Date.now()}`, type, title: type === 'map' ? 'Dónde estamos' : type === 'contact' ? 'Contacto' : type === 'reviews' ? 'Opiniones' : 'Sección',
+      content: defaults[type], enabled: true,
+    }]);
+  };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#e8850c] border-t-transparent rounded-full"></div></div>;
 
@@ -128,6 +155,32 @@ export default function AdminConfiguracion() {
                   )}
                 </div>
               ))}
+
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h2 className="font-bold text-sm text-gray-800 mb-1">🏠 Secciones del home</h2>
+                <p className="text-xs text-gray-400 mb-4">Agregá contacto, mapa, reseñas o widgets sin tocar el código.</p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {(['contact', 'map', 'reviews', 'embed', 'html'] as HomeSection['type'][]).map(type => (
+                    <button key={type} type="button" onClick={() => addHomeSection(type)}
+                      className="border border-gray-200 rounded-lg px-3 py-2 text-xs hover:border-[#e8850c]">
+                      + {type === 'contact' ? 'Contacto' : type === 'map' ? 'Mapa' : type === 'reviews' ? 'Reseñas Google' : type === 'embed' ? 'Widget' : 'HTML'}
+                    </button>
+                  ))}
+                </div>
+                <div className="space-y-3">
+                  {homeSections.map((section, index) => (
+                    <div key={section.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex gap-2 items-center mb-2">
+                        <input className={inputClass} value={section.title} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, title: e.target.value } : s))} />
+                        <label className="text-xs whitespace-nowrap"><input type="checkbox" checked={section.enabled} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s))} /> Visible</label>
+                        <button type="button" className="text-red-500 text-xs" onClick={() => setHomeSections(prev => prev.filter((_, i) => i !== index))}>Eliminar</button>
+                      </div>
+                      <textarea className={inputClass} rows={section.type === 'contact' || section.type === 'html' ? 4 : 2} value={section.content} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, content: e.target.value } : s))} placeholder={section.type === 'map' || section.type === 'reviews' || section.type === 'embed' ? 'URL de Google Maps o widget' : 'Contenido'} />
+                      <p className="text-[10px] text-gray-400 mt-1">{section.type === 'html' ? 'HTML básico; no se ejecutan scripts arbitrarios.' : section.type === 'embed' ? 'Se muestra como iframe.' : ''}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         ))}

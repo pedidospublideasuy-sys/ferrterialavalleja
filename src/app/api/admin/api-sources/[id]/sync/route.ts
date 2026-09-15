@@ -28,6 +28,19 @@ interface WooProduct {
   status: string;
 }
 
+interface WooVariation {
+  id: number;
+  sku: string;
+  regular_price: string;
+  sale_price: string;
+  price: string;
+  stock_quantity: number | null;
+  manage_stock: boolean;
+  description: string;
+  attributes: { name: string; option: string }[];
+  image?: { src: string };
+}
+
 async function fetchWooCommerceProducts(
   baseUrl: string,
   consumerKey: string,
@@ -68,13 +81,31 @@ async function fetchWooCommerceProducts(
   return allProducts;
 }
 
+async function fetchWooCommerceVariations(baseUrl: string, key: string, secret: string, productId: number): Promise<WooVariation[]> {
+  const result: WooVariation[] = [];
+  let page = 1;
+  while (true) {
+    const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/wp-json/wc/v3/products/${productId}/variations?per_page=100&page=${page}`, {
+      headers: { Authorization: `Basic ${Buffer.from(`${key}:${secret}`).toString('base64')}` },
+    });
+    if (!res.ok) throw new Error(`WooCommerce variations error ${res.status}`);
+    const rows: WooVariation[] = await res.json();
+    result.push(...rows);
+    if (rows.length < 100) break;
+    page++;
+  }
+  return result;
+}
+
 async function syncWooCommerceProduct(
   item: WooProduct,
   sourceName: string,
 ) {
   const name = item.name || 'Sin nombre';
-  const price = parseFloat(item.regular_price || item.price || '0');
-  const comparePrice = item.sale_price ? parseFloat(item.sale_price) : null;
+  const regularPrice = parseFloat(item.regular_price || item.price || '0');
+  const salePrice = parseFloat(item.sale_price || item.price || '0');
+  const price = salePrice || regularPrice;
+  const comparePrice = salePrice && regularPrice > salePrice ? regularPrice : null;
   const sku = item.sku || `WC-${item.id}`;
   const stock = item.manage_stock ? (item.stock_quantity ?? 0) : 999;
   const description = item.description || item.short_description || null;
@@ -138,6 +169,33 @@ async function syncWooCommerceProduct(
     },
   });
 
+  return 'created';
+}
+
+async function syncWooCommerceVariation(item: WooVariation, parent: WooProduct, sourceName: string, categoryName?: string) {
+  const regularPrice = parseFloat(item.regular_price || item.price || parent.regular_price || '0');
+  const salePrice = parseFloat(item.sale_price || item.price || '0');
+  const price = salePrice || regularPrice;
+  const comparePrice = salePrice && regularPrice > salePrice ? regularPrice : null;
+  const attributes = item.attributes?.filter(attribute => attribute.option).map(attribute => `${attribute.name}: ${attribute.option}`).join(' / ');
+  const name = attributes ? `${parent.name} - ${attributes}` : `${parent.name} - Variante ${item.id}`;
+  const sku = item.sku || `WC-${parent.id}-${item.id}`;
+  const existing = await prisma.product.findFirst({ where: { sourceId: `${parent.id}-${item.id}`, sourceApi: sourceName } });
+  const category = categoryName ? await prisma.category.findFirst({ where: { slug: slugify(categoryName, { lower: true, strict: true }) } }) : null;
+  const categoryId = category?.id || (await prisma.category.findFirst({ where: { slug: 'woocommerce' } }))?.id;
+  if (!categoryId) throw new Error('No se pudo resolver categoría de variación');
+  const data = {
+    name, price, comparePrice, sku,
+    stock: item.manage_stock ? (item.stock_quantity ?? 0) : 999,
+    description: item.description || parent.short_description || parent.description || null,
+    images: JSON.stringify(item.image?.src ? [item.image.src] : parent.images.map(image => image.src)),
+    categoryId, sourceId: `${parent.id}-${item.id}`, sourceApi: sourceName, active: true,
+  };
+  if (existing) {
+    await prisma.product.update({ where: { id: existing.id }, data });
+    return 'updated';
+  }
+  await prisma.product.create({ data: { ...data, slug: `${slugify(name, { lower: true, strict: true })}-${Date.now()}` } });
   return 'created';
 }
 
@@ -259,6 +317,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         try {
           await syncWooCommerceProduct(item, source.name);
           synced++;
+          const variations = await fetchWooCommerceVariations(source.baseUrl, source.apiKey, source.apiSecret, item.id);
+          total += variations.length;
+          for (const variation of variations) {
+            await syncWooCommerceVariation(variation, item, source.name, item.categories?.[0]?.name);
+            synced++;
+          }
         } catch {
           failed++;
         }

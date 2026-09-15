@@ -14,7 +14,7 @@ interface FooterSettings {
 interface NavItem { id: string; label: string; href: string; icon: string | null; openNew: boolean }
 
 const DEFAULTS: FooterSettings = {
-  logo_text: 'Ba Soluciones', logo_accent: 'Ba', logo_color: '#e8850c', logo_image_url: '',
+  logo_text: 'Ferretería Lavalleja', logo_accent: 'Ferretería', logo_color: '#ffffff', logo_image_url: '',
   footer_desc: 'La tienda de insumos de tecnología con mayor servicio y variedad.',
   footer_phone1: '2929 0990', footer_phone2: '2924 9009',
   footer_email: 'info@basoluciones.com.uy',

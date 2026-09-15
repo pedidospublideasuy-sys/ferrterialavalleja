@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import {
   ShoppingCartIcon,
@@ -55,10 +55,13 @@ export default function Header() {
   const totalItems = useCart((s) => s.totalItems);
   const totalPrice = useCart((s) => s.totalPrice);
 
-  const [logoText, setLogoText] = useState('Ba Soluciones');
-  const [logoAccent, setLogoAccent] = useState('Ba');
-  const [logoColor, setLogoColor] = useState('#e8850c');
+  const [logoText, setLogoText] = useState('Ferretería Lavalleja');
+  const [logoAccent, setLogoAccent] = useState('Ferretería');
+  const [logoColor, setLogoColor] = useState('#ffffff');
   const [logoImageUrl, setLogoImageUrl] = useState('');
+  const [colorPrimary, setColorPrimary] = useState('#0b9bd7');
+  const [colorSecondary, setColorSecondary] = useState('#315b91');
+  const [colorAccent, setColorAccent] = useState('#4a2fc5');
 
   const currency = useCurrency((s) => s.currency);
   const setCurrency = useCurrency((s) => s.setCurrency);
@@ -79,13 +82,16 @@ export default function Header() {
       } catch { /* keep fallback */ }
     };
     fetchMenu();
-    fetch('/api/public/settings?keys=logo_text,logo_accent,logo_color,logo_image_url,color_secondary')
+    fetch('/api/public/settings?keys=logo_text,logo_accent,logo_color,logo_image_url,color_primary,color_secondary,color_accent')
       .then(r => r.json())
       .then((data: Record<string, string>) => {
         if (data.logo_text) setLogoText(data.logo_text);
         if (data.logo_accent) setLogoAccent(data.logo_accent);
         if (data.logo_color) setLogoColor(data.logo_color);
         if (data.logo_image_url) setLogoImageUrl(data.logo_image_url);
+        if (data.color_primary) setColorPrimary(data.color_primary);
+        if (data.color_secondary) setColorSecondary(data.color_secondary);
+        if (data.color_accent) setColorAccent(data.color_accent);
       })
       .catch(() => { });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -107,8 +113,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50">
       {/* Main header bar */}
-      <div className="bg-[#1a1a1a]">
-        <div className="max-w-[1400px] mx-auto px-4 flex items-center justify-between h-[60px] gap-3">
+      <div className="bg-[#0b9bd7]" style={{ backgroundColor: colorPrimary }}>
+        <div className="max-w-[1400px] mx-auto px-4 flex items-center justify-between min-h-[92px] gap-4">
 
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
@@ -116,7 +122,7 @@ export default function Header() {
               <Image src={logoImageUrl} alt={logoText} width={140} height={40}
                 className="object-contain max-h-[40px] w-auto" unoptimized />
             ) : (
-              <div className="text-2xl font-black text-white tracking-tight leading-none"
+              <div className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none"
                 style={{ fontFamily: 'Arial Black, Arial, sans-serif' }}>
                 <span style={{ color: logoColor }}>{logoAccent}</span>
                 {logoText.slice(logoAccent.length)}
@@ -132,7 +138,7 @@ export default function Header() {
                 <select
                   value={searchCategory}
                   onChange={e => setSearchCategory(e.target.value)}
-                  className="appearance-none h-full bg-[#3a3a3a] text-white text-xs px-3 pr-7 border-r border-gray-600 cursor-pointer focus:outline-none rounded-l-full"
+                  className="appearance-none h-full bg-[#087eaf] text-white text-xs px-3 pr-7 border-r border-white/20 cursor-pointer focus:outline-none rounded-l-full"
                 >
                   <option value="all">Todas las categorías</option>
                   {menuCategories.map(c => (
@@ -154,13 +160,15 @@ export default function Header() {
             <div className="flex items-center bg-[#2a2a2a] rounded-full overflow-hidden text-[11px] font-bold border border-[#3a3a3a]">
               <button
                 onClick={() => setCurrency('UYU')}
-                className={`px-2.5 py-1 transition-colors ${currency === 'UYU' ? 'bg-[#e8850c] text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`px-2.5 py-1 transition-colors ${currency === 'UYU' ? 'text-white' : 'text-white/70 hover:text-white'}`}
+                style={currency === 'UYU' ? { backgroundColor: colorAccent } : undefined}
               >
                 UYU
               </button>
               <button
                 onClick={() => setCurrency('USD')}
-                className={`px-2.5 py-1 transition-colors ${currency === 'USD' ? 'bg-[#e8850c] text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`px-2.5 py-1 transition-colors ${currency === 'USD' ? 'text-white' : 'text-white/70 hover:text-white'}`}
+                style={currency === 'USD' ? { backgroundColor: colorAccent } : undefined}
               >
                 USD
               </button>
@@ -238,23 +246,23 @@ export default function Header() {
       </div>
 
       {/* Nav bar de categorías — solo desktop */}
-      <nav className="hidden md:block bg-[#2a2a2a] border-t border-[#3a3a3a]">
+      <nav className="hidden md:block bg-[#315b91] border-t border-white/10" style={{ backgroundColor: colorSecondary }}>
         <div className="max-w-[1400px] mx-auto px-4">
           <ul className="flex items-center gap-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             {menuCategories.map(cat => (
               <li key={cat.slug} className="flex-shrink-0 group relative">
                 <Link
                   href={`/productos?cat=${cat.slug}`}
-                  className="block px-3 py-2 text-[12px] text-gray-300 hover:text-white hover:bg-[#3a3a3a] transition-colors whitespace-nowrap"
+                  className="block px-3 py-3 text-[12px] text-white/90 hover:text-white hover:bg-[#254a7b] transition-colors whitespace-nowrap"
                 >
                   {cat.icon && <span className="mr-1">{cat.icon}</span>}
                   {cat.name}
                 </Link>
                 {cat.children.length > 0 && (
-                  <div className="hidden group-hover:block absolute top-full left-0 bg-[#333] rounded-b-lg shadow-xl py-1 z-50 min-w-[180px]">
+                  <div className="hidden group-hover:block absolute top-full left-0 bg-[#315b91] rounded-b-lg shadow-xl py-1 z-50 min-w-[180px]">
                     {cat.children.map(sub => (
                       <Link key={sub.id} href={`/productos?cat=${sub.slug}`}
-                        className="block px-4 py-2 text-[11px] text-gray-400 hover:text-white hover:bg-[#444] transition-colors whitespace-nowrap">
+                        className="block px-4 py-2 text-[11px] text-white/80 hover:text-white hover:bg-[#254a7b] transition-colors whitespace-nowrap">
                         {sub.name}
                       </Link>
                     ))}
