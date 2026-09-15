@@ -71,6 +71,15 @@ export default function AdminMarcas() {
     }
   };
 
+  const handleLogoUpload = async (file: File) => {
+    const data = new FormData();
+    data.append('file', file);
+    const res = await fetch('/api/admin/upload-banner', { method: 'POST', body: data });
+    const result = await res.json();
+    if (!res.ok || !result.url) throw new Error(result.error || 'No se pudo subir el logo');
+    setForm(f => ({ ...f, logo: result.url }));
+  };
+
   const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30";
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#e8850c] border-t-transparent rounded-full"></div></div>;
@@ -99,6 +108,9 @@ export default function AdminMarcas() {
             <div>
               <label className="block text-xs text-gray-500 mb-1">Logo URL</label>
               <input type="text" value={form.logo} onChange={e => setForm(f => ({ ...f, logo: e.target.value }))} className={inputClass} placeholder="https://..." />
+              <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="mt-2 block w-full text-xs"
+                onChange={e => { const file = e.target.files?.[0]; if (file) handleLogoUpload(file).catch(err => toast.error(err instanceof Error ? err.message : 'Error al subir logo')); }} />
+              {form.logo && <div className="mt-2 flex items-center gap-2"><img src={form.logo} alt="Vista previa" className="h-10 w-20 object-contain border rounded" /><button type="button" onClick={() => setForm(f => ({ ...f, logo: '' }))} className="text-xs text-red-600">Quitar</button></div>}
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Website</label>

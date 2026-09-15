@@ -1,7 +1,6 @@
 import HeroBanner from '@/components/home/HeroBanner';
 import CategoryGrid from '@/components/home/CategoryGrid';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
-import BrandsBar from '@/components/home/BrandsBar';
 import HomeSections from '@/components/home/HomeSections';
 
 export default function Home() {
@@ -15,7 +14,6 @@ export default function Home() {
       </section>
       <FeaturedProducts />
       <HomeSections />
-      <BrandsBar />
     </div>
   );
 }

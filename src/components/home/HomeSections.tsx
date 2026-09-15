@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import BrandsBar from './BrandsBar';
 
 interface HomeSection {
   id: string;
-  type: 'contact' | 'map' | 'reviews' | 'embed' | 'html';
+  type: 'contact' | 'map' | 'reviews' | 'payment' | 'brands' | 'embed' | 'html';
   title: string;
   content: string;
   enabled: boolean;
@@ -48,7 +49,11 @@ export default function HomeSections() {
         return (
           <article key={section.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <h2 className="mb-4 text-center text-lg font-bold uppercase tracking-wide text-[#315b91]">{section.title}</h2>
-            {section.type === 'map' || section.type === 'reviews' || section.type === 'embed' ? (
+            {section.type === 'brands' ? (
+              <BrandsBar />
+            ) : section.type === 'payment' ? (
+              section.content ? <img src={section.content} alt={section.title} className="mx-auto max-h-[180px] max-w-full rounded-xl object-contain" /> : null
+            ) : section.type === 'map' || section.type === 'reviews' || section.type === 'embed' ? (
               embedUrl ? <iframe title={section.title} src={embedUrl} className="h-[280px] w-full rounded-xl border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" /> : null
             ) : section.type === 'html' ? (
               <div className="prose max-w-none text-sm" dangerouslySetInnerHTML={{ __html: safeHtml(section.content) }} />

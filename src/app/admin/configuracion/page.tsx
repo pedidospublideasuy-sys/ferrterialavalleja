@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 interface Setting { key: string; value: string }
 interface HomeSection {
   id: string;
-  type: 'contact' | 'map' | 'reviews' | 'embed' | 'html';
+  type: 'contact' | 'map' | 'reviews' | 'payment' | 'brands' | 'embed' | 'html';
   title: string;
   content: string;
   enabled: boolean;
@@ -120,11 +120,13 @@ export default function AdminConfiguracion() {
       contact: 'Teléfono, email, dirección y horarios',
       map: 'https://www.google.com/maps/embed?pb=',
       reviews: 'https://www.google.com/maps',
+      payment: '',
+      brands: '',
       embed: 'https://example.com/widget',
       html: '<p>Contenido de la sección</p>',
     };
     setHomeSections(prev => [...prev, {
-      id: `${type}-${Date.now()}`, type, title: type === 'map' ? 'Dónde estamos' : type === 'contact' ? 'Contacto' : type === 'reviews' ? 'Opiniones' : 'Sección',
+      id: `${type}-${Date.now()}`, type, title: type === 'map' ? 'Dónde estamos' : type === 'contact' ? 'Contacto' : type === 'reviews' ? 'Opiniones Google' : type === 'payment' ? 'Medios de pago' : type === 'brands' ? 'Marcas reconocidas' : 'Sección',
       content: defaults[type], enabled: true,
     }]);
   };
@@ -199,22 +201,32 @@ export default function AdminConfiguracion() {
           </div>
           <h3 className="text-xs font-semibold text-gray-700 mb-2">Secciones adicionales</h3>
           <div className="flex flex-wrap gap-2 mb-4">
-            {(['contact', 'map', 'reviews', 'embed', 'html'] as HomeSection['type'][]).map(type => (
+            {(['contact', 'map', 'reviews', 'payment', 'brands', 'embed', 'html'] as HomeSection['type'][]).map(type => (
               <button key={type} type="button" onClick={() => addHomeSection(type)}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-xs hover:border-[#e8850c]">
-                + {type === 'contact' ? 'Contacto' : type === 'map' ? 'Mapa' : type === 'reviews' ? 'Reseñas Google' : type === 'embed' ? 'Widget' : 'HTML'}
+                + {type === 'contact' ? 'Contacto' : type === 'map' ? 'Mapa' : type === 'reviews' ? 'Reseñas Google' : type === 'payment' ? 'Medios de pago' : type === 'brands' ? 'Marcas reconocidas' : type === 'embed' ? 'Widget' : 'HTML'}
               </button>
             ))}
           </div>
           <div className="space-y-3">
             {homeSections.map((section, index) => (
-              <div key={section.id} className="border border-gray-200 rounded-lg p-3">
+              <div key={section.id} draggable onDragStart={e => e.dataTransfer.setData('section-index', String(index))} onDragOver={e => e.preventDefault()} onDrop={e => {
+                const from = Number(e.dataTransfer.getData('section-index'));
+                if (Number.isNaN(from) || from === index) return;
+                setHomeSections(prev => { const next = [...prev]; const [item] = next.splice(from, 1); next.splice(index, 0, item); return next; });
+              }} className="border border-gray-200 rounded-lg p-3 cursor-move">
                 <div className="flex gap-2 items-center mb-2">
                   <input className={inputClass} value={section.title} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, title: e.target.value } : s))} />
                   <label className="text-xs whitespace-nowrap"><input type="checkbox" checked={section.enabled} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s))} /> Visible</label>
                   <button type="button" className="text-red-500 text-xs" onClick={() => setHomeSections(prev => prev.filter((_, i) => i !== index))}>Eliminar</button>
                 </div>
-                <textarea className={inputClass} rows={section.type === 'contact' || section.type === 'html' ? 4 : 2} value={section.content} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, content: e.target.value } : s))} placeholder={section.type === 'map' || section.type === 'reviews' || section.type === 'embed' ? 'URL de Google Maps o widget' : 'Contenido'} />
+                <textarea className={inputClass} rows={section.type === 'contact' || section.type === 'html' ? 4 : 2} value={section.content} onChange={e => setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, content: e.target.value } : s))} placeholder={section.type === 'map' || section.type === 'reviews' || section.type === 'embed' ? 'URL de Google Maps o widget' : section.type === 'payment' ? 'URL de la imagen de medios de pago' : 'Contenido'} />
+                {section.type === 'payment' && <input type="file" accept="image/*" className="mt-2 block text-xs" onChange={async e => {
+                  const file = e.target.files?.[0]; if (!file) return;
+                  const data = new FormData(); data.append('file', file);
+                  const res = await fetch('/api/admin/upload-banner', { method: 'POST', body: data }); const result = await res.json();
+                  if (res.ok && result.url) setHomeSections(prev => prev.map((s, i) => i === index ? { ...s, content: result.url } : s)); else toast.error(result.error || 'No se pudo subir la imagen');
+                }} />}
                 <p className="text-[10px] text-gray-400 mt-1">{section.type === 'html' ? 'HTML básico; no se ejecutan scripts arbitrarios.' : section.type === 'embed' ? 'Se muestra como iframe.' : ''}</p>
               </div>
             ))}
