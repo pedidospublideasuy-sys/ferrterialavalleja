@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { ShoppingCartIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { useCart } from '@/store/cart';
 import toast from 'react-hot-toast';
 import { useParams } from 'next/navigation';
@@ -55,6 +55,7 @@ export default function ProductDetailPage() {
   const [selectedImg, setSelectedImg] = useState(0);
   const [hidePrices, setHidePrices] = useState(false);
   const [waPhone, setWaPhone] = useState('');
+  const [favorite, setFavorite] = useState(false);
   const addItem = useCart((s) => s.addItem);
   const formatCurrency = useCurrency((s) => s.format);
 
@@ -72,6 +73,20 @@ export default function ProductDetailPage() {
       })
       .catch(() => {});
   }, [slug]);
+
+  useEffect(() => {
+    if (!product) return;
+    try { setFavorite(JSON.parse(localStorage.getItem('favorites') || '[]').includes(product.id)); } catch { /* ignore invalid local storage */ }
+  }, [product]);
+
+  const toggleFavorite = () => {
+    if (!product) return;
+    const current: string[] = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const next = favorite ? current.filter(id => id !== product.id) : [...new Set([...current, product.id])];
+    localStorage.setItem('favorites', JSON.stringify(next));
+    setFavorite(!favorite);
+    toast.success(favorite ? 'Quitado de favoritos' : 'Agregado a favoritos');
+  };
 
   if (loading) {
     return (
@@ -168,7 +183,12 @@ export default function ProductDetailPage() {
           {product.brand && (
             <p className="text-sm text-gray-400 uppercase tracking-wide mb-1">{product.brand.name}</p>
           )}
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">{product.name}</h1>
+          <div className="flex items-start gap-3">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 flex-1">{product.name}</h1>
+            <button type="button" onClick={toggleFavorite} aria-label="Agregar a favoritos" className="rounded-full border p-2 hover:text-red-500">
+              <HeartIcon className={`h-6 w-6 ${favorite ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+            </button>
+          </div>
           <p className="text-sm text-gray-400 mb-4">SKU: {product.sku}</p>
 
           <div className="flex items-center gap-4 mb-6">

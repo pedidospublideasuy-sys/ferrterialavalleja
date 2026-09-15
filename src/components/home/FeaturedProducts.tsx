@@ -47,7 +47,18 @@ function CarouselSection({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const formatCurrency = useCurrency((s) => s.format);
+  const [titleColors, setTitleColors] = useState({ background: '#2a2a2a', color: '#ffffff' });
   const isPaused = useRef(false);
+
+  useEffect(() => {
+    fetch('/api/public/settings?keys=home_products_title_bg,home_products_title_color')
+      .then(r => r.ok ? r.json() : {})
+      .then((data: Record<string, string>) => setTitleColors({
+        background: data.home_products_title_bg || '#2a2a2a',
+        color: data.home_products_title_color || '#ffffff',
+      }))
+      .catch(() => {});
+  }, []);
 
   // Drag-to-scroll
   const isDragging = useRef(false);
@@ -120,7 +131,7 @@ function CarouselSection({
         </Link>
 
         {/* Pill centrado con flechas + título */}
-        <div className="flex items-center bg-[#2a2a2a] border-2 border-black rounded-full overflow-hidden shadow-lg">
+        <div className="flex items-center border-2 border-black rounded-full overflow-hidden shadow-lg" style={{ backgroundColor: titleColors.background }}>
           <button
             onClick={() => scroll('left')}
             className="px-4 py-2 text-white hover:bg-[#444] transition-colors"
@@ -130,7 +141,8 @@ function CarouselSection({
           </button>
           <Link
             href={catHref}
-            className="px-5 py-2 text-white font-bold text-[13px] uppercase tracking-widest whitespace-nowrap hover:text-[#f0a040] transition-colors"
+            className="px-5 py-2 font-bold text-[13px] uppercase tracking-widest whitespace-nowrap hover:opacity-80 transition-opacity"
+            style={{ color: titleColors.color }}
           >
             {title}
           </Link>

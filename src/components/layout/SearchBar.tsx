@@ -23,12 +23,16 @@ export default function SearchBar({ categoryFilter }: { categoryFilter?: string 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [searchColor, setSearchColor] = useState('#e8850c');
   const formatCurrency = useCurrency((s) => s.format);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    fetch('/api/public/settings?keys=color_primary').then(r => r.ok ? r.json() : {}).then(data => {
+      if (data.color_primary) setSearchColor(data.color_primary);
+    }).catch(() => {});
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
@@ -134,7 +138,8 @@ export default function SearchBar({ categoryFilter }: { categoryFilter?: string 
         <button
           type="button"
           onClick={handleFullSearch}
-          className="bg-[#e8850c] text-white px-4 hover:bg-[#d47a0b] transition-colors flex items-center"
+          className="text-white px-4 hover:opacity-85 transition-opacity flex items-center"
+          style={{ backgroundColor: searchColor }}
         >
           <MagnifyingGlassIcon className="h-5 w-5" />
         </button>

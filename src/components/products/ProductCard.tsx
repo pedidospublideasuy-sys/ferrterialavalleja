@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { ShoppingCartIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { useCart, CartProduct } from '@/store/cart';
 import { useCurrency } from '@/store/currency';
 import { useSession } from 'next-auth/react';
@@ -40,6 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const [hidePrices, setHidePrices] = useState(false);
   const [whatsapp, setWhatsapp] = useState('');
+  const [favorite, setFavorite] = useState(false);
 
   useEffect(() => {
     fetch('/api/public/settings?keys=hide_prices,site_whatsapp')
@@ -50,6 +51,19 @@ export default function ProductCard({ product }: ProductCardProps) {
       })
       .catch(() => { });
   }, []);
+
+  useEffect(() => {
+    try { setFavorite(JSON.parse(localStorage.getItem('favorites') || '[]').includes(product.id)); } catch { /* ignore invalid local storage */ }
+  }, [product.id]);
+
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    const current: string[] = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const next = favorite ? current.filter(id => id !== product.id) : [...new Set([...current, product.id])];
+    localStorage.setItem('favorites', JSON.stringify(next));
+    setFavorite(!favorite);
+    toast.success(favorite ? 'Quitado de favoritos' : 'Agregado a favoritos');
+  };
 
   let images: string[] = [];
   try { images = JSON.parse(product.images || '[]'); } catch { }
@@ -100,6 +114,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1 flex flex-col overflow-hidden">
       {/* ── Imagen ── */}
       <div className="relative bg-white" style={{ paddingBottom: '75%' }}>
+        <button type="button" onClick={toggleFavorite} aria-label="Agregar a favoritos" className="absolute top-2 right-2 z-20 rounded-full bg-white/90 p-2 shadow hover:text-red-500">
+          <HeartIcon className={`h-5 w-5 ${favorite ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+        </button>
         {/* Badges */}
         {product.isNew && (
           <span className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">NUEVO</span>
