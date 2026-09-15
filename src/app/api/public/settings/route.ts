@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const settings = await prisma.siteSetting.findMany({ where: { key: { in: requested } } });
     const result: Record<string, string> = {};
     for (const s of settings) result[s.key] = s.value;
-    return NextResponse.json(result);
+    return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   }
 
   // Return all allowed settings
@@ -26,5 +26,5 @@ export async function GET(req: NextRequest) {
   for (const s of settings) {
     if (isAllowed(s.key)) result[s.key] = s.value;
   }
-  return NextResponse.json(result);
+  return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
 }

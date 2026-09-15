@@ -65,7 +65,7 @@ export default function Footer() {
   const [ayuda, setAyuda] = useState<NavItem[]>(FALLBACK_AYUDA);
 
   useEffect(() => {
-    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_logo_width,footer_logo_height,footer_nosotros_title,footer_tienda_title,footer_ayuda_title,footer_show_bank_info,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer')
+    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_logo_width,footer_logo_height,footer_nosotros_title,footer_tienda_title,footer_ayuda_title,footer_show_bank_info,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data) {
