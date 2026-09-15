@@ -94,6 +94,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     const cartProduct: CartProduct = {
       id: product.id, name: product.name, slug: product.slug,
       price: product.price, image: mainImage || '', sku: product.sku, stock: product.stock,
+      currency: productCurrency,
     };
     for (let i = 0; i < qty; i++) addItem(cartProduct);
     router.push('/checkout');

@@ -68,6 +68,7 @@ export default function AparienciaPage() {
   const [footerTiendaTitle, setFooterTiendaTitle] = useState('Tienda');
   const [footerAyudaTitle, setFooterAyudaTitle] = useState('Ayuda');
   const [footerShowBankInfo, setFooterShowBankInfo] = useState(true);
+  const [footerBg, setFooterBg] = useState('#222222');
 
   // Slider
   const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
@@ -113,6 +114,7 @@ export default function AparienciaPage() {
       if (s.footer_tienda_title) setFooterTiendaTitle(s.footer_tienda_title);
       if (s.footer_ayuda_title) setFooterAyudaTitle(s.footer_ayuda_title);
       if (s.footer_show_bank_info) setFooterShowBankInfo(s.footer_show_bank_info === 'true');
+      if (s.footer_bg) setFooterBg(s.footer_bg);
       if (s.color_primary) setColorPrimary(s.color_primary);
       if (s.color_secondary) setColorSecondary(s.color_secondary);
       if (s.color_accent) setColorAccent(s.color_accent);
@@ -161,6 +163,7 @@ export default function AparienciaPage() {
     footer_logo_width: footerLogoWidth, footer_logo_height: footerLogoHeight,
     footer_nosotros_title: footerNosotrosTitle, footer_tienda_title: footerTiendaTitle,
     footer_ayuda_title: footerAyudaTitle, footer_show_bank_info: String(footerShowBankInfo),
+    footer_bg: footerBg,
   }, 'Footer guardado');
 
   const saveColores = () => saveSettings({
@@ -248,6 +251,13 @@ export default function AparienciaPage() {
       {/* ── TAB: IDENTIDAD ── */}
       {tab === 'identidad' && (
         <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-bold text-sm text-gray-800 mb-2">Color de fondo del footer</h2>
+            <div className="flex items-center gap-3">
+              <input type="color" value={footerBg} onChange={e => setFooterBg(e.target.value)} className="h-10 w-16 rounded border cursor-pointer" />
+              <input value={footerBg} onChange={e => setFooterBg(e.target.value)} className={inputClass} placeholder="#222222" />
+            </div>
+          </div>
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="font-bold text-sm text-gray-800 mb-4">Vista previa del logo</h2>
             <div className="bg-[#333333] rounded-lg p-4 flex items-center mb-6">

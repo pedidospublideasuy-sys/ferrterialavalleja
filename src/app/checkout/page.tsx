@@ -23,8 +23,11 @@ const DEFAULT_METHODS: PaymentMethod[] = [
 
 export default function CheckoutPage() {
   const formatCurrency = useCurrency((s) => s.format);
+  const convert = useCurrency((s) => s.convert);
+  const displayCurrency = useCurrency((s) => s.currency);
   const { data: session } = useSession();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, clearCart } = useCart();
+  const convertedTotal = items.reduce((sum, item) => sum + convert(item.product.price, item.product.currency || 'UYU') * item.quantity, 0);
   const [loading, setLoading] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(DEFAULT_METHODS);
   const [form, setForm] = useState({
@@ -184,10 +187,10 @@ export default function CheckoutPage() {
                 ))}
               </div>
               <div className="border-t pt-3 space-y-2">
-                <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(totalPrice(), 'USD')}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(convertedTotal, displayCurrency)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-500">Envio</span><span className="text-green-600">A confirmar</span></div>
                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                  <span>Total</span><span className="text-blue-900">{formatCurrency(totalPrice(), 'USD')}</span>
+                  <span>Total</span><span className="text-blue-900">{formatCurrency(convertedTotal, displayCurrency)}</span>
                 </div>
               </div>
               <button type="submit" disabled={loading}

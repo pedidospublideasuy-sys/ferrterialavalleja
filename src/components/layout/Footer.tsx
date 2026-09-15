@@ -10,6 +10,7 @@ interface FooterSettings {
   footer_service: string; footer_bank_info: string; footer_copyright: string;
   footer_price_disclaimer: string; footer_logo_width: string; footer_logo_height: string;
   footer_nosotros_title: string; footer_tienda_title: string; footer_ayuda_title: string; footer_show_bank_info: string;
+  footer_bg: string;
 }
 
 interface NavItem { id: string; label: string; href: string; icon: string | null; openNew: boolean }
@@ -26,6 +27,7 @@ const DEFAULTS: FooterSettings = {
   footer_price_disclaimer: 'Los precios son en dólares americanos y no incluyen IVA.',
   footer_logo_width: '180', footer_logo_height: '56',
   footer_nosotros_title: 'Nosotros', footer_tienda_title: 'Tienda', footer_ayuda_title: 'Ayuda', footer_show_bank_info: 'true',
+  footer_bg: '#222222',
 };
 
 // Fallbacks hardcoded por si la DB está vacía
@@ -65,7 +67,7 @@ export default function Footer() {
   const [ayuda, setAyuda] = useState<NavItem[]>(FALLBACK_AYUDA);
 
   useEffect(() => {
-    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_logo_width,footer_logo_height,footer_nosotros_title,footer_tienda_title,footer_ayuda_title,footer_show_bank_info,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer', { cache: 'no-store' })
+    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_bg,footer_logo_width,footer_logo_height,footer_nosotros_title,footer_tienda_title,footer_ayuda_title,footer_show_bank_info,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data) {
@@ -88,7 +90,7 @@ export default function Footer() {
   const banks = s.footer_bank_info.split('|').map((b: string) => b.trim()).filter(Boolean);
 
   return (
-    <footer className="bg-[#222222] mt-auto">
+    <footer className="mt-auto" style={{ backgroundColor: s.footer_bg }}>
       <div className="bg-[#2a2a2a] border-b border-[#333]">
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

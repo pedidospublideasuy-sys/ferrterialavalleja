@@ -7,7 +7,10 @@ import Link from 'next/link';
 import { TrashIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCart();
+  const { items, removeItem, updateQuantity, clearCart } = useCart();
+  const convert = useCurrency((s) => s.convert);
+  const displayCurrency = useCurrency((s) => s.currency);
+  const convertedTotal = items.reduce((sum, item) => sum + convert(item.product.price, item.product.currency || 'UYU') * item.quantity, 0);
   const formatCurrency = useCurrency((s) => s.format);
 
   if (items.length === 0) {
@@ -61,9 +64,9 @@ export default function CartPage() {
           <div className="bg-white rounded-xl border p-6 sticky top-24">
             <h2 className="font-bold text-lg text-gray-800 mb-4">Resumen</h2>
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(totalPrice(), 'UYU')}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(convertedTotal, displayCurrency)}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Envío</span><span className="text-green-600">A calcular</span></div>
-              <div className="border-t pt-3 flex justify-between font-bold text-lg"><span>Total</span><span className="text-blue-900">{formatCurrency(totalPrice(), 'UYU')}</span></div>
+              <div className="border-t pt-3 flex justify-between font-bold text-lg"><span>Total</span><span className="text-blue-900">{formatCurrency(convertedTotal, displayCurrency)}</span></div>
             </div>
             <Link href="/checkout" className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
               Finalizar Compra
