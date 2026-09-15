@@ -1,25 +1,27 @@
 // ============================================================
-// StockBA API Client
+// Sistema de stock API Client
 // Base URL: https://stockba.es/api/v1
 // Auth: X-API-KEY header
 // ============================================================
 
-const BASE_URL = 'https://stockba.es/api/v1';
+const BASE_URL = process.env.STOCK_SYSTEM_API_URL || 'https://stockba.es/api/v1';
 
 function getApiKey(): string {
-    const key = process.env.STOCKBA_API_KEY;
-    if (!key) throw new Error('STOCKBA_API_KEY no configurada');
+    const key = process.env.STOCK_SYSTEM_API_KEY;
+    if (!key) throw new Error('STOCK_SYSTEM_API_KEY no configurada');
     return key;
 }
 
 async function stockbaFetch(path: string, options: RequestInit = {}, retries = 4) {
     const apiKey = getApiKey();
+    const apiSecret = process.env.STOCK_SYSTEM_API_SECRET;
     let attempt = 0;
     while (true) {
         const res = await fetch(`${BASE_URL}${path}`, {
             ...options,
             headers: {
                 'X-API-KEY': apiKey,
+                ...(apiSecret ? { 'X-API-SECRET': apiSecret } : {}),
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 ...(options.headers || {}),
@@ -37,7 +39,7 @@ async function stockbaFetch(path: string, options: RequestInit = {}, retries = 4
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
             const msg = data.message || data.error || `HTTP ${res.status}`;
-            throw new Error(`StockBA ${res.status}: ${msg}`);
+            throw new Error(`Sistema de stock ${res.status}: ${msg}`);
         }
         return data;
     }

@@ -20,8 +20,8 @@ const defaultPages = [
 
 <h3>Email</h3>
 <ul>
-  <li>📧 ventas@impotech.uy</li>
-  <li>📧 soporte@impotech.uy</li>
+  <li>📧 ventas@ferreterialavalleja.com</li>
+  <li>📧 soporte@ferreterialavalleja.com</li>
 </ul>
 
 <h3>Horario de atención</h3>
@@ -183,7 +183,7 @@ const defaultPages = [
 <p>
   📞 +598 2XXX XXXX<br>
   📱 +598 9XX XXX XXX (WhatsApp)<br>
-  📧 info@impotech.uy
+  📧 info@ferreterialavalleja.com
 </p>`,
   },
 ]

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET() {
-  const apiKeyConfigured = !!process.env.STOCKBA_API_KEY;
+  const apiKeyConfigured = !!process.env.STOCK_SYSTEM_API_KEY;
   try {
     const syncedProducts = await prisma.product.count({ where: { sourceApi: 'stockba' } });
     const last = await prisma.product.findFirst({

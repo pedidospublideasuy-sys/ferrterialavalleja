@@ -45,7 +45,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       title: 'Integraciones',
       items: [
         { name: 'Sync Proveedor', href: '/admin/provider-sync', icon: '🔄' },
-        { name: 'StockBA', href: '/admin/stockba', icon: '🏭' },
+        { name: 'Sistema de stock', href: '/admin/stockba', icon: '🏭' },
         { name: 'APIs Externas', href: '/admin/api-sync', icon: '🔗' },
         { name: 'MercadoPago', href: '/admin/mercadopago', icon: '💰' },
       ],

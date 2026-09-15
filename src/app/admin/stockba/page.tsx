@@ -106,9 +106,9 @@ export default function AdminStockBAPage() {
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-8">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Integración StockBA</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Sistema de stock</h1>
                 <p className="text-gray-500 text-sm mt-1">
-                    Sincronización bidireccional con el sistema de facturación StockBA
+                    Sincronización bidireccional con el sistema de facturación
                 </p>
             </div>
 
@@ -148,7 +148,7 @@ export default function AdminStockBAPage() {
                         />
                         {status.stockba && (
                             <StatCard
-                                label="Ventas StockBA (hoy)"
+                                label="Ventas del sistema (hoy)"
                                 value={status.stockba?.today_sells ?? '—'}
                             />
                         )}
@@ -159,16 +159,16 @@ export default function AdminStockBAPage() {
 
                 {status && !status.apiKeyConfigured && (
                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                        ⚠️ Configurá la variable de entorno <code className="font-mono bg-yellow-100 px-1 rounded">STOCKBA_API_KEY</code> en Vercel para habilitar la integración.
+                        ⚠️ Configurá las variables de entorno <code className="font-mono bg-yellow-100 px-1 rounded">STOCK_SYSTEM_API_KEY</code> y, si corresponde, <code className="font-mono bg-yellow-100 px-1 rounded">STOCK_SYSTEM_API_SECRET</code> en Vercel para habilitar la integración.
                     </div>
                 )}
             </div>
 
             {/* ── Sync Products ───────────────────────────────────── */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h2 className="text-lg font-semibold mb-1">📦 Importar productos desde StockBA</h2>
+                <h2 className="text-lg font-semibold mb-1">📦 Importar productos desde el sistema de stock</h2>
                 <p className="text-sm text-gray-500 mb-4">
-                    Importa todos los productos activos de StockBA a la tienda. Los productos ya importados se actualizan (nombre, stock, etc.).
+                    Importa todos los productos activos del sistema de stock a la tienda. Los productos ya importados se actualizan (nombre, stock, etc.).
                 </p>
 
                 <div className="flex flex-wrap gap-6 mb-4">
@@ -188,7 +188,7 @@ export default function AdminStockBAPage() {
                             onChange={(e) => setSyncImages(e.target.checked)}
                             className="rounded"
                         />
-                        <span className="text-sm">Importar imágenes de StockBA</span>
+                        <span className="text-sm">Importar imágenes del sistema de stock</span>
                     </label>
                 </div>
 
@@ -226,9 +226,9 @@ export default function AdminStockBAPage() {
 
             {/* ── Sync Stock ──────────────────────────────────────── */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h2 className="text-lg font-semibold mb-1">📊 Actualizar stock desde StockBA</h2>
+                <h2 className="text-lg font-semibold mb-1">📊 Actualizar stock desde el sistema</h2>
                 <p className="text-sm text-gray-500 mb-4">
-                    Actualiza solo los niveles de stock de los productos ya importados desde StockBA, sin tocar precios ni descripciones.
+                    Actualiza solo los niveles de stock de los productos ya importados, sin tocar precios ni descripciones.
                 </p>
 
                 <button
@@ -247,11 +247,11 @@ export default function AdminStockBAPage() {
             {/* ── Info Panel ──────────────────────────────────────── */}
             <div className="bg-gray-50 rounded-xl border p-6 text-sm text-gray-600 space-y-2">
                 <h3 className="font-semibold text-gray-800 mb-2">ℹ️ Información</h3>
-                <p>• La integración usa la API REST de StockBA (<code className="font-mono bg-gray-100 px-1 rounded">stockba.es/api/v1</code>)</p>
+                <p>• La integración usa la API REST del sistema de stock</p>
                 <p>• Los productos importados quedan vinculados por <code className="font-mono bg-gray-100 px-1 rounded">sourceId</code> + <code className="font-mono bg-gray-100 px-1 rounded">sourceApi = "stockba"</code></p>
                 <p>• El stock se suma de todas las ubicaciones del depósito</p>
-                <p>• La función de crear venta en StockBA estará disponible cuando la API habilite <code className="font-mono bg-gray-100 px-1 rounded">POST /sells</code></p>
-                <p>• Variable de entorno requerida: <code className="font-mono bg-gray-100 px-1 rounded">STOCKBA_API_KEY</code></p>
+                <p>• La función de crear venta estará disponible cuando la API habilite <code className="font-mono bg-gray-100 px-1 rounded">POST /sells</code></p>
+                <p>• Variables de entorno: <code className="font-mono bg-gray-100 px-1 rounded">STOCK_SYSTEM_API_KEY</code> y <code className="font-mono bg-gray-100 px-1 rounded">STOCK_SYSTEM_API_SECRET</code></p>
             </div>
         </div>
     );
@@ -292,7 +292,7 @@ function ResultBox({ result }: { result: SyncResult }) {
                 <>
                     <p className="font-semibold mb-1">✅ Completado</p>
                     {result.total !== undefined && (
-                        <p>Total en StockBA: <strong>{result.total}</strong></p>
+                        <p>Total en el sistema de stock: <strong>{result.total}</strong></p>
                     )}
                     {result.created !== undefined && (
                         <p>Creados: <strong>{result.created}</strong></p>
