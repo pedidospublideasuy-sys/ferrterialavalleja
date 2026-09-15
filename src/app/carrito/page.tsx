@@ -5,13 +5,44 @@ import { useCurrency } from '@/store/currency';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TrashIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { useEffect } from 'react';
+import type { CartProduct } from '@/store/cart';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, clearCart } = useCart();
+  const { items, removeItem, updateQuantity, updateProduct, clearCart } = useCart();
   const convert = useCurrency((s) => s.convert);
   const displayCurrency = useCurrency((s) => s.currency);
   const convertedTotal = items.reduce((sum, item) => sum + convert(item.product.price, item.product.currency || 'UYU') * item.quantity, 0);
   const formatCurrency = useCurrency((s) => s.format);
+
+  useEffect(() => {
+    if (!items.length) return;
+    const ids = items.map(item => item.product.id).join(',');
+    fetch(`/api/products?ids=${encodeURIComponent(ids)}`, { cache: 'no-store' })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        for (const product of data?.products || []) {
+          let images: string[] = [];
+          try { images = JSON.parse(product.images || '[]'); } catch { /* keep stored image */ }
+          const current = items.find(item => item.product.id === product.id)?.product;
+          if (!current) continue;
+          const refreshed: CartProduct = {
+            ...current,
+            name: product.name,
+            slug: product.slug,
+            price: product.price,
+            currency: product.sourceApi ? 'UYU' : (product.currency === 'USD' ? 'USD' : 'UYU'),
+            image: images[0] || current.image,
+            sku: product.sku,
+            stock: product.stock,
+          };
+          if (current.price !== refreshed.price || current.name !== refreshed.name || current.stock !== refreshed.stock || current.currency !== refreshed.currency || current.image !== refreshed.image) {
+            updateProduct(refreshed);
+          }
+        }
+      })
+      .catch(() => { /* keep cached cart when refresh is unavailable */ });
+  }, [items, updateProduct]);
 
   if (items.length === 0) {
     return (

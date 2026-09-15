@@ -1,6 +1,6 @@
 'use client';
 
-import { useCart } from '@/store/cart';
+import { useCart, CartProduct } from '@/store/cart';
 import { useCurrency } from '@/store/currency';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -26,13 +26,37 @@ export default function CheckoutPage() {
   const convert = useCurrency((s) => s.convert);
   const displayCurrency = useCurrency((s) => s.currency);
   const { data: session } = useSession();
-  const { items, clearCart } = useCart();
+  const { items, updateProduct, clearCart } = useCart();
   const convertedTotal = items.reduce((sum, item) => sum + convert(item.product.price, item.product.currency || 'UYU') * item.quantity, 0);
   const [loading, setLoading] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(DEFAULT_METHODS);
   const [form, setForm] = useState({
     name: '', email: '', phone: '', address: '', city: '', notes: '', paymentMethod: 'transferencia'
   });
+
+  useEffect(() => {
+    if (!items.length) return;
+    fetch(`/api/products?ids=${encodeURIComponent(items.map(item => item.product.id).join(','))}`, { cache: 'no-store' })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        for (const product of data?.products || []) {
+          const current = items.find(item => item.product.id === product.id)?.product;
+          if (!current) continue;
+          let images: string[] = [];
+          try { images = JSON.parse(product.images || '[]'); } catch { /* keep stored image */ }
+          const refreshed: CartProduct = {
+            ...current,
+            name: product.name, slug: product.slug, price: product.price,
+            currency: product.sourceApi ? 'UYU' : (product.currency === 'USD' ? 'USD' : 'UYU'),
+            image: images[0] || current.image, sku: product.sku, stock: product.stock,
+          };
+          if (current.price !== refreshed.price || current.name !== refreshed.name || current.stock !== refreshed.stock || current.currency !== refreshed.currency || current.image !== refreshed.image) {
+            updateProduct(refreshed);
+          }
+        }
+      })
+      .catch(() => { /* keep cached cart when refresh is unavailable */ });
+  }, [items, updateProduct]);
 
   useEffect(() => {
     fetch('/api/admin/payment-methods')
