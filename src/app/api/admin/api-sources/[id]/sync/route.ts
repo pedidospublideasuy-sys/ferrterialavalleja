@@ -127,6 +127,7 @@ async function syncWooCommerceProduct(
   });
 
   if (existing) {
+    const imageData = imageUrls.length > 0 ? { images: JSON.stringify(imageUrls) } : {};
     await prisma.product.update({
       where: { id: existing.id },
       data: {
@@ -135,7 +136,7 @@ async function syncWooCommerceProduct(
         comparePrice,
         stock,
         description,
-        images: JSON.stringify(imageUrls),
+        ...imageData,
       },
     });
     return 'updated';
@@ -254,9 +255,10 @@ async function syncGenericProducts(
       });
 
       if (existing) {
+        const imageData = images.length > 0 ? { images: JSON.stringify(images) } : {};
         await prisma.product.update({
           where: { id: existing.id },
-          data: { price, stock, name, description, images: JSON.stringify(images) },
+          data: { price, stock, name, description, ...imageData },
         });
       } else {
         let defaultCategory = await prisma.category.findFirst({ where: { slug: 'importados' } });

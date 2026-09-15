@@ -288,6 +288,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (existing) {
+          const imageData = images.length > 0 ? { images: JSON.stringify(images) } : {};
           // Actualizar precio, stock e imágenes
           await prisma.product.update({
             where: { id: existing.id },
@@ -295,7 +296,7 @@ export async function POST(req: NextRequest) {
               cost: precio,
               price: precio,
               stock: stock,
-              images: JSON.stringify(images),
+              ...imageData,
               description: descripcion || existing.description,
               shortDesc: copete || existing.shortDesc,
               barcode: gtin || existing.barcode,
