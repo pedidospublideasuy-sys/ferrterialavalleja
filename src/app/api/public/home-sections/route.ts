@@ -95,7 +95,11 @@ export async function GET() {
         slug: s.slug,
         products: s.products.map(p => {
             let firstImage = '';
-            try { const arr = JSON.parse(p.images); if (Array.isArray(arr) && arr.length > 0) firstImage = arr[0]; } catch { }
+            try {
+                const arr = JSON.parse(p.images);
+                const first = Array.isArray(arr) ? arr[0] : null;
+                firstImage = typeof first === 'string' ? first : first?.url ?? first?.src ?? first?.img ?? '';
+            } catch { }
             return {
                 id: p.id, name: p.name, slug: p.slug,
                 price: p.price, images: p.images,

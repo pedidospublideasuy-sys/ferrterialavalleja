@@ -23,10 +23,13 @@ interface DBProduct {
 }
 
 function getFirstImage(p: DBProduct): string {
-  if (p._firstImage) return p._firstImage;
+  if (p._firstImage && typeof p._firstImage === 'string') return p._firstImage;
   try {
     const arr = JSON.parse(p.images);
-    return Array.isArray(arr) && arr.length > 0 ? arr[0] : '/placeholder.png';
+    const first = Array.isArray(arr) ? arr[0] : null;
+    if (typeof first === 'string') return first;
+    if (first && typeof first === 'object') return first.url || first.src || first.img || '/placeholder.png';
+    return '/placeholder.png';
   } catch {
     return '/placeholder.png';
   }
@@ -271,7 +274,7 @@ export default function FeaturedProducts() {
   if (sections.length === 0) return null;
 
   return (
-    <div className="bg-[#f5f5f5] pt-0 pb-6 -mt-10 relative z-20">
+    <div className="bg-[#f5f5f5] pt-2 pb-6 relative z-20">
       {sections.map((s, idx) => (
         <CarouselSection
           key={s.title}
@@ -286,4 +289,3 @@ export default function FeaturedProducts() {
     </div>
   );
 }
-

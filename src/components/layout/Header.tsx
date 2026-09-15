@@ -52,6 +52,10 @@ export default function Header() {
   const [searchCategory, setSearchCategory] = useState('all');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const navScrollRef = useRef<HTMLUListElement>(null);
+  const navDragging = useRef(false);
+  const navDragStart = useRef(0);
+  const navScrollStart = useRef(0);
   const totalItems = useCart((s) => s.totalItems);
   const totalPrice = useCart((s) => s.totalPrice);
 
@@ -139,6 +143,35 @@ export default function Header() {
   const cartCount = mounted ? totalItems() : 0;
   const cartTotal = mounted ? totalPrice() : 0;
 
+  useEffect(() => {
+    const el = navScrollRef.current;
+    if (!el || menuCategories.length < 2) return;
+    const timer = window.setInterval(() => {
+      if (navDragging.current || el.scrollWidth <= el.clientWidth) return;
+      const end = el.scrollWidth - el.clientWidth;
+      el.scrollTo({ left: el.scrollLeft >= end - 2 ? 0 : el.scrollLeft + 180, behavior: 'smooth' });
+    }, 3500);
+    return () => window.clearInterval(timer);
+  }, [menuCategories.length]);
+
+  const startNavDrag = (event: React.MouseEvent<HTMLUListElement>) => {
+    navDragging.current = true;
+    navDragStart.current = event.pageX - event.currentTarget.offsetLeft;
+    navScrollStart.current = event.currentTarget.scrollLeft;
+    event.currentTarget.style.cursor = 'grabbing';
+    event.currentTarget.style.userSelect = 'none';
+  };
+  const moveNavDrag = (event: React.MouseEvent<HTMLUListElement>) => {
+    if (!navDragging.current) return;
+    const x = event.pageX - event.currentTarget.offsetLeft;
+    event.currentTarget.scrollLeft = navScrollStart.current - (x - navDragStart.current);
+  };
+  const stopNavDrag = (event: React.MouseEvent<HTMLUListElement>) => {
+    navDragging.current = false;
+    event.currentTarget.style.cursor = 'grab';
+    event.currentTarget.style.userSelect = '';
+  };
+
   return (
     <header className="sticky top-0 z-50">
       {/* Main header bar */}
@@ -168,7 +201,7 @@ export default function Header() {
                 <select
                   value={searchCategory}
                   onChange={e => setSearchCategory(e.target.value)}
-                  className="appearance-none h-full bg-[#087eaf] text-white text-xs px-3 pr-7 border-r border-white/20 cursor-pointer focus:outline-none rounded-l-full"
+                  className="appearance-none h-full max-w-[145px] bg-[#087eaf] text-white text-[10px] sm:text-xs px-2 sm:px-3 pr-6 border-r border-white/20 cursor-pointer focus:outline-none rounded-l-full truncate"
                 >
                   <option value="all">Todas las categorías</option>
                   {menuCategories.map(c => (
@@ -278,12 +311,14 @@ export default function Header() {
       {/* Nav bar de categorías — solo desktop */}
       <nav className="hidden md:block bg-[#315b91] border-t border-white/10" style={{ backgroundColor: colorSecondary }}>
         <div className="max-w-[1400px] mx-auto px-4">
-          <ul className="flex items-center gap-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          <ul ref={navScrollRef} className="flex items-center gap-0 overflow-x-auto cursor-grab scroll-smooth" style={{ scrollbarWidth: 'none' }}
+            onMouseDown={startNavDrag} onMouseMove={moveNavDrag} onMouseUp={stopNavDrag}
+            onMouseLeave={stopNavDrag} onMouseEnter={() => { navDragging.current = false; }}>
             {menuCategories.map(cat => (
               <li key={cat.slug} className="flex-shrink-0 group relative">
                 <Link
                   href={`/productos?cat=${cat.slug}`}
-                  className="block px-3 py-3 text-[12px] text-white/90 hover:text-white hover:bg-[#254a7b] transition-colors whitespace-nowrap"
+                  className="block max-w-[135px] px-2 py-2.5 text-[10px] leading-tight text-white/90 hover:text-white hover:bg-[#254a7b] transition-colors whitespace-normal text-center"
                 >
                   {cat.icon && <span className="mr-1">{cat.icon}</span>}
                   {cat.name}
