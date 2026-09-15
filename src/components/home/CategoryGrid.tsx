@@ -167,17 +167,17 @@ export default function CategoryGrid() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/public/settings?keys=home_categories').then(r => r.ok ? r.json() : {}),
+      fetch('/api/public/settings?keys=home_carousel_categories').then(r => r.ok ? r.json() : {}),
       fetch('/api/categories').then(r => r.ok ? r.json() : []),
     ]).then(([settings, dbCategories]) => {
-      const publicSettings = settings as { home_categories?: string };
+      const publicSettings = settings as { home_carousel_categories?: string };
       let selected: string[] = [];
       try {
-        const parsed = JSON.parse(publicSettings.home_categories || '[]');
+        const parsed = JSON.parse(publicSettings.home_carousel_categories || '[]');
         if (Array.isArray(parsed)) selected = parsed.filter((slug): slug is string => typeof slug === 'string');
       } catch { /* use defaults when not configured */ }
       if (!Array.isArray(dbCategories)) return;
-      if (!Object.prototype.hasOwnProperty.call(publicSettings, 'home_categories')) return;
+      if (!Object.prototype.hasOwnProperty.call(publicSettings, 'home_carousel_categories')) return;
       if (!selected.length) {
         setCategories([]);
         return;

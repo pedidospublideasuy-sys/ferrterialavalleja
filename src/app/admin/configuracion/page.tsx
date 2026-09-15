@@ -51,6 +51,7 @@ export default function AdminConfiguracion() {
   const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [homeCategories, setHomeCategories] = useState<string[]>([]);
+  const [homeCarouselCategories, setHomeCarouselCategories] = useState<string[]>([]);
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [homeBrands, setHomeBrands] = useState<string[]>([]);
 
@@ -72,6 +73,12 @@ export default function AdminConfiguracion() {
           try {
             const parsed = JSON.parse(map.home_categories);
             if (Array.isArray(parsed)) setHomeCategories(parsed);
+          } catch { /* keep empty */ }
+        }
+        if (map.home_carousel_categories) {
+          try {
+            const parsed = JSON.parse(map.home_carousel_categories);
+            if (Array.isArray(parsed)) setHomeCarouselCategories(parsed);
           } catch { /* keep empty */ }
         }
         if (map.home_brands) {
@@ -105,6 +112,7 @@ export default function AdminConfiguracion() {
             ...settings,
             home_sections: JSON.stringify(homeSections),
             home_categories: JSON.stringify(homeCategories),
+            home_carousel_categories: JSON.stringify(homeCarouselCategories),
             home_brands: JSON.stringify(homeBrands),
           },
         }),
@@ -196,17 +204,29 @@ export default function AdminConfiguracion() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="font-bold text-sm text-gray-800 mb-1">🏠 Contenido del home</h2>
           <p className="text-xs text-gray-400 mb-4">Elegí qué categorías y secciones aparecen en la portada. El resto queda en Tienda.</p>
-          <h3 className="text-xs font-semibold text-gray-700 mb-2">Categorías destacadas y carruseles de productos</h3>
+          <h3 className="text-xs font-semibold text-gray-700 mb-2">Carrusel de categorías destacadas</h3>
+          <p className="text-xs text-gray-400 mb-2">Esta selección controla únicamente las tarjetas de categorías destacadas.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
             {categories.flatMap(category => [category, ...(category.children || [])]).map(category => (
               <label key={category.id} className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm">
                 <input
                   type="checkbox"
-                  checked={homeCategories.includes(category.slug)}
-                  onChange={e => setHomeCategories(prev => e.target.checked
+                  checked={homeCarouselCategories.includes(category.slug)}
+                  onChange={e => setHomeCarouselCategories(prev => e.target.checked
                     ? [...prev, category.slug]
                     : prev.filter(slug => slug !== category.slug))}
                 />
+                <span>{category.name}</span>
+              </label>
+            ))}
+          </div>
+          <h3 className="text-xs font-semibold text-gray-700 mb-2">Categorías de productos del home</h3>
+          <p className="text-xs text-gray-400 mb-2">Esta selección es independiente y controla los carruseles de productos.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+            {categories.flatMap(category => [category, ...(category.children || [])]).map(category => (
+              <label key={`products-${category.id}`} className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm">
+                <input type="checkbox" checked={homeCategories.includes(category.slug)}
+                  onChange={e => setHomeCategories(prev => e.target.checked ? [...prev, category.slug] : prev.filter(slug => slug !== category.slug))} />
                 <span>{category.name}</span>
               </label>
             ))}

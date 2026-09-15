@@ -33,8 +33,8 @@ export default function AdminMenu() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<'categories' | 'placement' | 'custom' | 'footer'>('categories');
-  const [menuCategories, setMenuCategories] = useState<string[]>([]);
-  const [hamburgerCategories, setHamburgerCategories] = useState<string[]>([]);
+  const [menuCategories, setMenuCategories] = useState<string[] | null>(null);
+  const [hamburgerCategories, setHamburgerCategories] = useState<string[] | null>(null);
 
   // Form para items header custom y footer
   const [showItemForm, setShowItemForm] = useState(false);
@@ -53,8 +53,8 @@ export default function AdminMenu() {
       if (settingsRes.ok) {
         const settings = await settingsRes.json() as { key: string; value: string }[];
         const values = Object.fromEntries(settings.map(setting => [setting.key, setting.value]));
-        try { setMenuCategories(JSON.parse(values.menu_categories || '[]')); } catch { setMenuCategories([]); }
-        try { setHamburgerCategories(JSON.parse(values.hamburger_categories || '[]')); } catch { setHamburgerCategories([]); }
+        try { setMenuCategories(values.menu_categories === undefined ? null : JSON.parse(values.menu_categories)); } catch { setMenuCategories(null); }
+        try { setHamburgerCategories(values.hamburger_categories === undefined ? null : JSON.parse(values.hamburger_categories)); } catch { setHamburgerCategories(null); }
       }
     } catch { toast.error('Error al cargar menÃº'); }
     setLoading(false);
@@ -180,6 +180,8 @@ export default function AdminMenu() {
     </div>
   );
 
+  const allCategorySlugs = categories.flatMap(category => [category.slug, ...category.children.map(child => child.slug)]);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -247,8 +249,14 @@ export default function AdminMenu() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {categories.map(category => (
                   <label key={`${group.title}-${category.id}`} className="flex items-center gap-2 border rounded-lg px-3 py-2 text-sm">
-                    <input type="checkbox" checked={group.value.length === 0 || group.value.includes(category.slug)}
-                      onChange={event => group.set(event.target.checked ? [...group.value.filter(slug => slug !== category.slug), category.slug] : group.value.filter(slug => slug !== category.slug))} />
+                    <input type="checkbox"
+                      checked={group.value === null || group.value.includes(category.slug)}
+                      onChange={event => {
+                        const current = group.value === null ? allCategorySlugs : group.value;
+                        group.set(event.target.checked
+                          ? [...current.filter(slug => slug !== category.slug), category.slug]
+                          : current.filter(slug => slug !== category.slug));
+                      }} />
                     {category.name}
                   </label>
                 ))}
