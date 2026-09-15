@@ -4,6 +4,21 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import slugify from 'slugify';
 
+function extractImageUrls(product: any): string[] {
+  const values = [
+    ...(Array.isArray(product?.galeria) ? product.galeria : []),
+    ...(Array.isArray(product?.gallery) ? product.gallery : []),
+    ...(Array.isArray(product?.images) ? product.images : []),
+    product?.image_url,
+    product?.image,
+  ];
+  return values
+    .map((value: any) => typeof value === 'string' ? value : value?.img ?? value?.url ?? value?.src)
+    .filter((value: unknown): value is string => typeof value === 'string' && /^(https?:)?\/\//i.test(value))
+    .map(value => value.startsWith('//') ? `https:${value}` : value)
+    .filter((value, index, all) => all.indexOf(value) === index);
+}
+
 async function isAdmin() {
   const session = await getServerSession(authOptions);
   return session?.user?.role === 'admin' || session?.user?.role === 'store_admin';
@@ -258,12 +273,7 @@ export async function POST(req: NextRequest) {
         const nroParte = product.nro_parte?.trim() || null;
 
         // Construir array de imágenes desde la galería
-        const images: string[] = [];
-        if (product.galeria && Array.isArray(product.galeria)) {
-          for (const img of product.galeria) {
-            if (img.img) images.push(img.img);
-          }
-        }
+        const images = extractImageUrls(product);
 
         // Generar slug único
         let slug = slugify(nombre, { lower: true, strict: true, locale: 'es' });

@@ -41,6 +41,15 @@ interface WooVariation {
   image?: { src: string };
 }
 
+function normalizeImageUrls(values: unknown): string[] {
+  const list = Array.isArray(values) ? values : values ? [values] : [];
+  return list
+    .map((value: any) => typeof value === 'string' ? value : value?.src ?? value?.url)
+    .filter((value: unknown): value is string => typeof value === 'string' && /^(https?:)?\/\//i.test(value))
+    .map(value => value.startsWith('//') ? `https:${value}` : value)
+    .filter((value, index, all) => all.indexOf(value) === index);
+}
+
 async function fetchWooCommerceProducts(
   baseUrl: string,
   consumerKey: string,
@@ -109,7 +118,7 @@ async function syncWooCommerceProduct(
   const sku = item.sku || `WC-${item.id}`;
   const stock = item.manage_stock ? (item.stock_quantity ?? 0) : 999;
   const description = item.description || item.short_description || null;
-  const imageUrls = item.images?.map((img) => img.src) || [];
+  const imageUrls = normalizeImageUrls(item.images);
   const sourceProductId = String(item.id);
 
   // Buscar si ya existe
@@ -188,7 +197,7 @@ async function syncWooCommerceVariation(item: WooVariation, parent: WooProduct, 
     name, price, comparePrice, sku,
     stock: item.manage_stock ? (item.stock_quantity ?? 0) : 999,
     description: item.description || parent.short_description || parent.description || null,
-    images: JSON.stringify(item.image?.src ? [item.image.src] : parent.images.map(image => image.src)),
+    images: JSON.stringify(normalizeImageUrls(item.image?.src ? [item.image.src] : parent.images)),
     categoryId, sourceId: `${parent.id}-${item.id}`, sourceApi: sourceName, active: true,
   };
   if (existing) {
@@ -237,7 +246,7 @@ async function syncGenericProducts(
       const sku = item[mapping.sku || 'sku'] || item.sku || `EXT-${Date.now()}-${synced}`;
       const stock = parseInt(item[mapping.stock || 'stock'] || item.stock || 0);
       const description = item[mapping.description || 'description'] || item.description || null;
-      const images = item[mapping.images || 'images'] || item.images || [];
+      const images = normalizeImageUrls(item[mapping.images || 'images'] || item.images);
       const sourceProductId = String(item[mapping.id || 'id'] || item.id || sku);
 
       const existing = await prisma.product.findFirst({
@@ -247,7 +256,7 @@ async function syncGenericProducts(
       if (existing) {
         await prisma.product.update({
           where: { id: existing.id },
-          data: { price, stock, name, description, images: JSON.stringify(Array.isArray(images) ? images : [images]) },
+          data: { price, stock, name, description, images: JSON.stringify(images) },
         });
       } else {
         let defaultCategory = await prisma.category.findFirst({ where: { slug: 'importados' } });
@@ -263,7 +272,7 @@ async function syncGenericProducts(
             price,
             stock,
             description,
-            images: JSON.stringify(Array.isArray(images) ? images : [images]),
+            images: JSON.stringify(images),
             categoryId: defaultCategory.id,
             sourceId: sourceProductId,
             sourceApi: source.name,

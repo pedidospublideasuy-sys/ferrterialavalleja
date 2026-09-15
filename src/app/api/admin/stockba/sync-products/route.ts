@@ -25,6 +25,23 @@ function ensureUniqueSlug(base: string, existing: Set<string>): string {
     return slug;
 }
 
+function extractImageUrls(product: any): string[] {
+    const values = [
+        product?.image_url,
+        product?.image,
+        product?.thumbnail,
+        ...(Array.isArray(product?.images) ? product.images : []),
+        ...(Array.isArray(product?.gallery) ? product.gallery : []),
+        ...(Array.isArray(product?.galeria) ? product.galeria : []),
+    ];
+    return values
+        .map((value: any) => typeof value === 'string' ? value : value?.url ?? value?.src ?? value?.img)
+        .filter((value: unknown): value is string => typeof value === 'string' && /^(https?:)?\/\//i.test(value))
+        .map(value => value.startsWith('//') ? `https:${value}` : value)
+        .filter((value, index, all) => all.indexOf(value) === index)
+        .filter(value => !value.includes('default.png'));
+}
+
 /** Extract price from StockBA product — price lives in variations[0], not root */
 function extractPrice(sp: any): { price: number; cost: number | null } {
     const rootPrice = Number(sp.selling_price_inc_tax ?? sp.selling_price ?? 0);
@@ -139,9 +156,8 @@ export async function POST(req: NextRequest) {
 
                 // ── Images ────────────────────────────────────────
                 // Ignorar la imagen default de Laravel (producto sin imagen real)
-                const rawImageUrl: string | null = detail.image_url ?? sp.image_url ?? null;
-                const imageUrl = rawImageUrl && !rawImageUrl.includes('default.png') ? rawImageUrl : null;
-                const images = syncImages && imageUrl ? JSON.stringify([imageUrl]) : undefined;
+                const imageUrls = syncImages ? extractImageUrls({ ...sp, ...detail }) : [];
+                const images = imageUrls.length > 0 ? JSON.stringify(imageUrls) : undefined;
 
                 // ── SKU ───────────────────────────────────────────
                 const sku = detail.sku || sp.sku || `SBA-${sp.id}`;
