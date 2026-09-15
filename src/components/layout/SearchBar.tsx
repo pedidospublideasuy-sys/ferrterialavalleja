@@ -30,7 +30,7 @@ export default function SearchBar({ categoryFilter }: { categoryFilter?: string 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    fetch('/api/public/settings?keys=color_primary').then(r => r.ok ? r.json() : {}).then(data => {
+    fetch('/api/public/settings?keys=color_primary').then(r => r.ok ? r.json() : {}).then((data: Record<string, string>) => {
       if (data.color_primary) setSearchColor(data.color_primary);
     }).catch(() => {});
     const handler = (e: MouseEvent) => {
