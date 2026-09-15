@@ -1,7 +1,7 @@
 'use client';
 
 import { useCart } from '@/store/cart';
-import { formatPrice } from '@/lib/utils';
+import { useCurrency } from '@/store/currency';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -22,6 +22,7 @@ const DEFAULT_METHODS: PaymentMethod[] = [
 ];
 
 export default function CheckoutPage() {
+  const formatCurrency = useCurrency((s) => s.format);
   const { data: session } = useSession();
   const { items, totalPrice, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
@@ -178,15 +179,15 @@ export default function CheckoutPage() {
                 {items.map((item) => (
                   <div key={item.product.id} className="flex justify-between text-sm">
                     <span className="text-gray-600">{item.product.name} x{item.quantity}</span>
-                    <span className="font-medium">{formatPrice(item.product.price * item.quantity)}</span>
+                    <span className="font-medium">{formatCurrency(item.product.price * item.quantity, 'USD')}</span>
                   </div>
                 ))}
               </div>
               <div className="border-t pt-3 space-y-2">
-                <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatPrice(totalPrice())}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(totalPrice(), 'USD')}</span></div>
                 <div className="flex justify-between"><span className="text-gray-500">Envio</span><span className="text-green-600">A confirmar</span></div>
                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                  <span>Total</span><span className="text-blue-900">{formatPrice(totalPrice())}</span>
+                  <span>Total</span><span className="text-blue-900">{formatCurrency(totalPrice(), 'USD')}</span>
                 </div>
               </div>
               <button type="submit" disabled={loading}

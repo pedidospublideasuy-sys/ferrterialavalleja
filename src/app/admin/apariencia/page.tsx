@@ -59,6 +59,10 @@ export default function AparienciaPage() {
   const [footerCopyright, setFooterCopyright] = useState('Ferretería Lavalleja');
   const [footerLogoWidth, setFooterLogoWidth] = useState('180');
   const [footerLogoHeight, setFooterLogoHeight] = useState('56');
+  const [footerNosotrosTitle, setFooterNosotrosTitle] = useState('Nosotros');
+  const [footerTiendaTitle, setFooterTiendaTitle] = useState('Tienda');
+  const [footerAyudaTitle, setFooterAyudaTitle] = useState('Ayuda');
+  const [footerShowBankInfo, setFooterShowBankInfo] = useState(true);
 
   // Slider
   const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
@@ -100,6 +104,10 @@ export default function AparienciaPage() {
       if (s.footer_copyright) setFooterCopyright(s.footer_copyright);
       if (s.footer_logo_width) setFooterLogoWidth(s.footer_logo_width);
       if (s.footer_logo_height) setFooterLogoHeight(s.footer_logo_height);
+      if (s.footer_nosotros_title) setFooterNosotrosTitle(s.footer_nosotros_title);
+      if (s.footer_tienda_title) setFooterTiendaTitle(s.footer_tienda_title);
+      if (s.footer_ayuda_title) setFooterAyudaTitle(s.footer_ayuda_title);
+      if (s.footer_show_bank_info) setFooterShowBankInfo(s.footer_show_bank_info === 'true');
       if (s.color_primary) setColorPrimary(s.color_primary);
       if (s.color_secondary) setColorSecondary(s.color_secondary);
       if (s.color_accent) setColorAccent(s.color_accent);
@@ -141,6 +149,8 @@ export default function AparienciaPage() {
     footer_email: footerEmail, footer_hours: footerHours, footer_address: footerAddress,
     footer_service: footerService, footer_bank_info: footerBankInfo, footer_copyright: footerCopyright,
     footer_logo_width: footerLogoWidth, footer_logo_height: footerLogoHeight,
+    footer_nosotros_title: footerNosotrosTitle, footer_tienda_title: footerTiendaTitle,
+    footer_ayuda_title: footerAyudaTitle, footer_show_bank_info: String(footerShowBankInfo),
   }, 'Footer guardado');
 
   const saveColores = () => saveSettings({
@@ -597,8 +607,17 @@ export default function AparienciaPage() {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="font-bold text-sm text-gray-800 mb-2">🏦 Datos bancarios</h2>
+            <label className="flex items-center gap-2 text-sm text-gray-700 mb-3"><input type="checkbox" checked={footerShowBankInfo} onChange={e => setFooterShowBankInfo(e.target.checked)} /> Mostrar medios de pago y datos bancarios en el footer</label>
             <textarea value={footerBankInfo} onChange={e => setFooterBankInfo(e.target.value)} rows={3} className={inputClass} placeholder="BROU Cta USD 123456 | SANTANDER..." />
             <p className="text-xs text-gray-400 mt-1">Separar con | (pipe)</p>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-bold text-sm text-gray-800 mb-4">Títulos de las columnas</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Primera columna</label><input value={footerNosotrosTitle} onChange={e => setFooterNosotrosTitle(e.target.value)} className={inputClass} /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Segunda columna</label><input value={footerTiendaTitle} onChange={e => setFooterTiendaTitle(e.target.value)} className={inputClass} /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Tercera columna</label><input value={footerAyudaTitle} onChange={e => setFooterAyudaTitle(e.target.value)} className={inputClass} /></div>
+            </div>
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="font-bold text-sm text-gray-800 mb-2">©️ Copyright</h2>

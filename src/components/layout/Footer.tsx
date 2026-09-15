@@ -9,6 +9,7 @@ interface FooterSettings {
   footer_email: string; footer_hours: string; footer_address: string;
   footer_service: string; footer_bank_info: string; footer_copyright: string;
   footer_price_disclaimer: string; footer_logo_width: string; footer_logo_height: string;
+  footer_nosotros_title: string; footer_tienda_title: string; footer_ayuda_title: string; footer_show_bank_info: string;
 }
 
 interface NavItem { id: string; label: string; href: string; icon: string | null; openNew: boolean }
@@ -24,6 +25,7 @@ const DEFAULTS: FooterSettings = {
   footer_copyright: 'Ferretería Lavalleja',
   footer_price_disclaimer: 'Los precios son en dólares americanos y no incluyen IVA.',
   footer_logo_width: '180', footer_logo_height: '56',
+  footer_nosotros_title: 'Nosotros', footer_tienda_title: 'Tienda', footer_ayuda_title: 'Ayuda', footer_show_bank_info: 'true',
 };
 
 // Fallbacks hardcoded por si la DB está vacía
@@ -63,7 +65,7 @@ export default function Footer() {
   const [ayuda, setAyuda] = useState<NavItem[]>(FALLBACK_AYUDA);
 
   useEffect(() => {
-    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_logo_width,footer_logo_height,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer')
+    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_logo_width,footer_logo_height,footer_nosotros_title,footer_tienda_title,footer_ayuda_title,footer_show_bank_info,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data) {
@@ -125,7 +127,7 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <h4 className="text-[13px] font-semibold text-gray-300 mb-3 uppercase tracking-wider">Nosotros</h4>
+              <h4 className="text-[13px] font-semibold text-gray-300 mb-3 uppercase tracking-wider">{s.footer_nosotros_title}</h4>
               <ul className="space-y-1.5 text-[13px] text-gray-400">
                 {nosotros.map(item => (
                   <li key={item.id}>
@@ -135,7 +137,7 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <h4 className="text-[13px] font-semibold text-gray-300 mb-3 uppercase tracking-wider">Tienda</h4>
+              <h4 className="text-[13px] font-semibold text-gray-300 mb-3 uppercase tracking-wider">{s.footer_tienda_title}</h4>
               <ul className="space-y-1.5 text-[13px] text-gray-400 mb-4">
                 {tienda.map(item => (
                   <li key={item.id}>
@@ -143,7 +145,7 @@ export default function Footer() {
                   </li>
                 ))}
               </ul>
-              <h4 className="text-[13px] font-semibold text-gray-300 mb-2 uppercase tracking-wider">Ayuda</h4>
+              <h4 className="text-[13px] font-semibold text-gray-300 mb-2 uppercase tracking-wider">{s.footer_ayuda_title}</h4>
               <ul className="space-y-1.5 text-[13px] text-gray-400">
                 {ayuda.map(item => (
                   <li key={item.id}>
@@ -157,7 +159,7 @@ export default function Footer() {
       </div>
       <div className="container mx-auto px-4 py-4">
         <p className="text-[11px] text-gray-500 text-center mb-3">{s.footer_price_disclaimer}</p>
-        {banks.length > 0 && (
+        {s.footer_show_bank_info === 'true' && banks.length > 0 && (
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-[11px] text-gray-600 mb-3">
             {banks.map((bank: string, i: number) => {
               const sp = bank.indexOf(' ');

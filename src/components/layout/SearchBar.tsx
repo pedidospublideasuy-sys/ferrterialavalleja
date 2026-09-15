@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { formatPrice } from '@/lib/utils';
+import { useCurrency } from '@/store/currency';
 import Link from 'next/link';
 
 interface SearchResult {
@@ -23,6 +23,7 @@ export default function SearchBar({ categoryFilter }: { categoryFilter?: string 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const formatCurrency = useCurrency((s) => s.format);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -180,9 +181,9 @@ export default function SearchBar({ categoryFilter }: { categoryFilter?: string 
                       )}
                     </div>
                     {item.comparePrice && item.comparePrice > item.price && (
-                      <p className="text-[11px] text-gray-400 line-through">{formatPrice(item.comparePrice)}</p>
+                      <p className="text-[11px] text-gray-400 line-through">{formatCurrency(item.comparePrice, 'USD')}</p>
                     )}
-                    <p className="text-[16px] font-bold text-gray-900">{formatPrice(item.price)}</p>
+                    <p className="text-[16px] font-bold text-gray-900">{formatCurrency(item.price, 'USD')}</p>
                     <div className="mt-0.5">{stockBadge(item.stock)}</div>
                   </div>
                 </Link>

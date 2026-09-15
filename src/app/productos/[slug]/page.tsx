@@ -5,9 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { useCart } from '@/store/cart';
-import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { useParams } from 'next/navigation';
+import { useCurrency } from '@/store/currency';
 
 interface ProductDetail {
   id: string;
@@ -54,6 +54,7 @@ export default function ProductDetailPage() {
   const [hidePrices, setHidePrices] = useState(false);
   const [waPhone, setWaPhone] = useState('');
   const addItem = useCart((s) => s.addItem);
+  const formatCurrency = useCurrency((s) => s.format);
 
   useEffect(() => {
     fetch('/api/products/' + slug)
@@ -184,9 +185,9 @@ export default function ProductDetailPage() {
               </a>
             ) : (
               <>
-                <span className="text-3xl font-extrabold text-blue-900">{formatPrice(product.price)}</span>
+                <span className="text-3xl font-extrabold text-blue-900">{formatCurrency(product.price, 'USD')}</span>
                 {product.comparePrice && (
-                  <span className="text-lg text-gray-400 line-through">{formatPrice(product.comparePrice)}</span>
+                  <span className="text-lg text-gray-400 line-through">{formatCurrency(product.comparePrice, 'USD')}</span>
                 )}
                 {discount > 0 && (
                   <span className="bg-red-100 text-red-700 text-sm font-bold px-3 py-1 rounded-full">Ahorro {discount}%</span>
