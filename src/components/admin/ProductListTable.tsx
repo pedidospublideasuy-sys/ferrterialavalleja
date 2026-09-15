@@ -32,17 +32,32 @@ export default function ProductListTable({ products }: { products: ProductRow[] 
       setDeleting(false);
     }
   };
+  const deleteAllProducts = async () => {
+    if (!confirm('¿Eliminar TODOS los productos del catálogo? Esta acción no se puede deshacer.')) return;
+    setDeleting(true);
+    try {
+      const response = await fetch('/api/admin/products', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No se pudieron eliminar');
+      window.location.reload();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'No se pudieron eliminar');
+      setDeleting(false);
+    }
+  };
 
   return (
     <>
-      {selected.length > 0 && (
-        <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 mb-3">
-          <span className="text-sm text-orange-800">{selected.length} seleccionado{selected.length === 1 ? '' : 's'}</span>
-          <button onClick={() => deleteProducts(selected)} disabled={deleting} className="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold">
-            {deleting ? 'Eliminando...' : 'Eliminar seleccionados'}
-          </button>
+      <div className="flex items-center justify-between gap-3 bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 mb-3">
+        <span className="text-sm text-orange-800">{selected.length > 0 ? `${selected.length} seleccionado${selected.length === 1 ? '' : 's'}` : 'Gestión del catálogo'}</span>
+        <div className="flex gap-2">
+          {selected.length > 0 && <button onClick={() => deleteProducts(selected)} disabled={deleting} className="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold">{deleting ? 'Eliminando...' : 'Eliminar seleccionados'}</button>}
+          <button onClick={deleteAllProducts} disabled={deleting} className="border border-red-600 text-red-700 px-3 py-1.5 rounded text-xs font-semibold hover:bg-red-600 hover:text-white">{deleting ? 'Eliminando...' : 'Eliminar todos'}</button>
         </div>
-      )}
+      </div>
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead><tr className="text-left text-gray-500 bg-gray-50 text-xs uppercase tracking-wider">
