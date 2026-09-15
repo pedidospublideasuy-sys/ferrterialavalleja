@@ -33,8 +33,8 @@ export default function AdminMenu() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<'categories' | 'placement' | 'custom' | 'footer'>('categories');
-  const [menuCategories, setMenuCategories] = useState<string[] | null>(null);
-  const [hamburgerCategories, setHamburgerCategories] = useState<string[] | null>(null);
+  const [menuCategories, setMenuCategories] = useState<string[]>([]);
+  const [hamburgerCategories, setHamburgerCategories] = useState<string[]>([]);
 
   // Form para items header custom y footer
   const [showItemForm, setShowItemForm] = useState(false);
@@ -53,8 +53,14 @@ export default function AdminMenu() {
       if (settingsRes.ok) {
         const settings = await settingsRes.json() as { key: string; value: string }[];
         const values = Object.fromEntries(settings.map(setting => [setting.key, setting.value]));
-        try { setMenuCategories(values.menu_categories === undefined ? null : JSON.parse(values.menu_categories)); } catch { setMenuCategories(null); }
-        try { setHamburgerCategories(values.hamburger_categories === undefined ? null : JSON.parse(values.hamburger_categories)); } catch { setHamburgerCategories(null); }
+        try {
+          const parsed = values.menu_categories === undefined ? [] : JSON.parse(values.menu_categories);
+          setMenuCategories(Array.isArray(parsed) ? parsed : []);
+        } catch { setMenuCategories([]); }
+        try {
+          const parsed = values.hamburger_categories === undefined ? [] : JSON.parse(values.hamburger_categories);
+          setHamburgerCategories(Array.isArray(parsed) ? parsed : []);
+        } catch { setHamburgerCategories([]); }
       }
     } catch { toast.error('Error al cargar menÃº'); }
     setLoading(false);
@@ -180,8 +186,6 @@ export default function AdminMenu() {
     </div>
   );
 
-  const allCategorySlugs = categories.flatMap(category => [category.slug, ...category.children.map(child => child.slug)]);
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -250,18 +254,15 @@ export default function AdminMenu() {
                 {categories.map(category => (
                   <label key={`${group.title}-${category.id}`} className="flex items-center gap-2 border rounded-lg px-3 py-2 text-sm">
                     <input type="checkbox"
-                      checked={group.value === null || group.value.includes(category.slug)}
-                      onChange={event => {
-                        const current = group.value === null ? allCategorySlugs : group.value;
-                        group.set(event.target.checked
-                          ? [...current.filter(slug => slug !== category.slug), category.slug]
-                          : current.filter(slug => slug !== category.slug));
-                      }} />
+                      checked={group.value.includes(category.slug)}
+                      onChange={event => group.set(event.target.checked
+                        ? [...group.value, category.slug]
+                        : group.value.filter(slug => slug !== category.slug))} />
                     {category.name}
                   </label>
                 ))}
               </div>
-              <p className="text-xs text-gray-400 mt-2">Si no seleccionás ninguna, se muestran todas.</p>
+              <p className="text-xs text-gray-400 mt-2">Solo se mostrarán las categorías que marques y guardes.</p>
             </div>
           ))}
           <button onClick={saveCategories} disabled={saving} className="bg-[#e8850c] text-white px-5 py-2 rounded-lg text-sm font-semibold">
