@@ -8,11 +8,13 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search');
   const featured = searchParams.get('featured');
   const isNew = searchParams.get('new');
+  const ids = searchParams.get('ids');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '20');
 
   const where: any = { active: true };
 
+  if (ids) where.id = { in: ids.split(',').map(id => id.trim()).filter(Boolean) };
   if (category) where.category = { slug: category };
   if (brand) where.brand = { slug: brand };
   if (featured === 'true') where.featured = true;

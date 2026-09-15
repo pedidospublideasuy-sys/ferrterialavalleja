@@ -80,9 +80,21 @@ export default function Header() {
   const [menuCategorySlugs, setMenuCategorySlugs] = useState<string[] | null>(null);
   const [hamburgerCategorySlugs, setHamburgerCategorySlugs] = useState<string[] | null>(null);
   const [customMenuItems, setCustomMenuItems] = useState<CustomMenuItem[]>([]);
+  const [favoriteCount, setFavoriteCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+    const updateFavoriteCount = () => {
+      try {
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        setFavoriteCount(Array.isArray(favorites) ? favorites.length : 0);
+      } catch {
+        setFavoriteCount(0);
+      }
+    };
+    updateFavoriteCount();
+    window.addEventListener('favorites-changed', updateFavoriteCount);
+    window.addEventListener('storage', updateFavoriteCount);
     fetchRate(); // actualiza cotización USD/UYU si hace más de 1h
     const fetchMenu = async () => {
       try {
@@ -122,6 +134,10 @@ export default function Header() {
       })
       .catch(() => { });
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      window.removeEventListener('favorites-changed', updateFavoriteCount);
+      window.removeEventListener('storage', updateFavoriteCount);
+    };
   }, []);
 
   useEffect(() => {
@@ -238,7 +254,10 @@ export default function Header() {
             </div>
             {/* Favoritos */}
             <Link href="/favoritos" className="flex items-center gap-1 text-gray-300 hover:text-white transition-colors text-sm">
-              <HeartIcon className="h-5 w-5" />
+              <span className="relative">
+                <HeartIcon className="h-5 w-5" />
+                {favoriteCount > 0 && <span className="absolute -right-2 -top-2 min-w-4 h-4 rounded-full bg-red-500 px-1 text-center text-[10px] leading-4 text-white">{favoriteCount}</span>}
+              </span>
               <span className="hidden lg:inline text-xs">Favoritos</span>
             </Link>
 

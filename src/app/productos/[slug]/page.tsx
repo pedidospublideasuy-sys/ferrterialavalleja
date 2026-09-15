@@ -84,6 +84,7 @@ export default function ProductDetailPage() {
     const current: string[] = JSON.parse(localStorage.getItem('favorites') || '[]');
     const next = favorite ? current.filter(id => id !== product.id) : [...new Set([...current, product.id])];
     localStorage.setItem('favorites', JSON.stringify(next));
+    window.dispatchEvent(new Event('favorites-changed'));
     setFavorite(!favorite);
     toast.success(favorite ? 'Quitado de favoritos' : 'Agregado a favoritos');
   };
