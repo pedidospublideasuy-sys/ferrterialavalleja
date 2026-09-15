@@ -46,20 +46,34 @@ export default function AdminMenu() {
     try {
       const res = await fetch('/api/admin/menu');
       const data = await res.json();
-      setCategories(data.categories || []);
+      const loadedCategories = data.categories || [];
+      setCategories(loadedCategories);
       setMenuItems(data.menuItems || []);
       setFooterItems(data.footerItems || []);
       const settingsRes = await fetch('/api/admin/settings');
       if (settingsRes.ok) {
         const settings = await settingsRes.json() as { key: string; value: string }[];
         const values = Object.fromEntries(settings.map(setting => [setting.key, setting.value]));
+        const availableSlugs: string[] = loadedCategories.map((category: CategoryItem) => category.slug);
+        const parseSelection = (value: string | undefined) => {
+          if (value === undefined) return [];
+          try {
+            const parsed = JSON.parse(value);
+            if (!Array.isArray(parsed)) return [];
+            const selection = parsed.filter((slug): slug is string => typeof slug === 'string');
+            // Migrate the previous accidental "all selected" default to no selection.
+            return selection.length === availableSlugs.length && availableSlugs.every(slug => selection.includes(slug))
+              ? []
+              : selection;
+          } catch {
+            return [];
+          }
+        };
         try {
-          const parsed = values.menu_categories === undefined ? [] : JSON.parse(values.menu_categories);
-          setMenuCategories(Array.isArray(parsed) ? parsed : []);
+          setMenuCategories(parseSelection(values.menu_categories));
         } catch { setMenuCategories([]); }
         try {
-          const parsed = values.hamburger_categories === undefined ? [] : JSON.parse(values.hamburger_categories);
-          setHamburgerCategories(Array.isArray(parsed) ? parsed : []);
+          setHamburgerCategories(parseSelection(values.hamburger_categories));
         } catch { setHamburgerCategories([]); }
       }
     } catch { toast.error('Error al cargar menÃº'); }
