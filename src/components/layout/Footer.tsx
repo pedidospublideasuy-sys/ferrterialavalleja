@@ -8,7 +8,7 @@ interface FooterSettings {
   footer_desc: string; footer_phone1: string; footer_phone2: string;
   footer_email: string; footer_hours: string; footer_address: string;
   footer_service: string; footer_bank_info: string; footer_copyright: string;
-  footer_price_disclaimer: string;
+  footer_price_disclaimer: string; footer_logo_width: string; footer_logo_height: string;
 }
 
 interface NavItem { id: string; label: string; href: string; icon: string | null; openNew: boolean }
@@ -23,6 +23,7 @@ const DEFAULTS: FooterSettings = {
   footer_bank_info: 'BROU C. Corriente dólares Nº 1559417-00001 | SANTANDER C. Corriente dólares Nº 005100207330 | SCOTIABANK C. Corriente dólares Nº 2513484200 | ITAÚ C. Corriente dólares Nº 3304980 | HSBC C. Corriente dólares Nº 3298943-2 | PREX Card Nº cuenta dólares 90033713',
   footer_copyright: 'Ferretería Lavalleja',
   footer_price_disclaimer: 'Los precios son en dólares americanos y no incluyen IVA.',
+  footer_logo_width: '180', footer_logo_height: '56',
 };
 
 // Fallbacks hardcoded por si la DB está vacía
@@ -62,7 +63,7 @@ export default function Footer() {
   const [ayuda, setAyuda] = useState<NavItem[]>(FALLBACK_AYUDA);
 
   useEffect(() => {
-    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer')
+    fetch('/api/public/settings?keys=logo_image_url,logo_text,logo_accent,logo_color,footer_logo_width,footer_logo_height,footer_desc,footer_phone1,footer_phone2,footer_email,footer_hours,footer_address,footer_service,footer_bank_info,footer_copyright,footer_price_disclaimer')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data) {
@@ -91,7 +92,7 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
               {s.logo_image_url ? (
-                <img src={s.logo_image_url} alt={s.logo_text} className="h-8 object-contain mb-2" />
+                <img src={s.logo_image_url} alt={s.logo_text} className="object-contain object-left mb-2" style={{ width: `${s.footer_logo_width}px`, height: `${s.footer_logo_height}px` }} />
               ) : (
                 <div className="text-xl font-black tracking-tight leading-none mb-2">
                   <span style={{ color: s.logo_color }}>{s.logo_accent}</span>

@@ -57,6 +57,8 @@ export default function AparienciaPage() {
     'BROU Cta. Cte. USD 1559417-00001 | SANTANDER Cta. Cte. USD 005100207330 | SCOTIABANK Cta. Cte. USD 2513484200'
   );
   const [footerCopyright, setFooterCopyright] = useState('Ferretería Lavalleja');
+  const [footerLogoWidth, setFooterLogoWidth] = useState('180');
+  const [footerLogoHeight, setFooterLogoHeight] = useState('56');
 
   // Slider
   const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
@@ -96,6 +98,8 @@ export default function AparienciaPage() {
       if (s.footer_service) setFooterService(s.footer_service);
       if (s.footer_bank_info) setFooterBankInfo(s.footer_bank_info);
       if (s.footer_copyright) setFooterCopyright(s.footer_copyright);
+      if (s.footer_logo_width) setFooterLogoWidth(s.footer_logo_width);
+      if (s.footer_logo_height) setFooterLogoHeight(s.footer_logo_height);
       if (s.color_primary) setColorPrimary(s.color_primary);
       if (s.color_secondary) setColorSecondary(s.color_secondary);
       if (s.color_accent) setColorAccent(s.color_accent);
@@ -136,6 +140,7 @@ export default function AparienciaPage() {
     footer_desc: footerDesc, footer_phone1: footerPhone1, footer_phone2: footerPhone2,
     footer_email: footerEmail, footer_hours: footerHours, footer_address: footerAddress,
     footer_service: footerService, footer_bank_info: footerBankInfo, footer_copyright: footerCopyright,
+    footer_logo_width: footerLogoWidth, footer_logo_height: footerLogoHeight,
   }, 'Footer guardado');
 
   const saveColores = () => saveSettings({
@@ -598,6 +603,14 @@ export default function AparienciaPage() {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="font-bold text-sm text-gray-800 mb-2">©️ Copyright</h2>
             <input value={footerCopyright} onChange={e => setFooterCopyright(e.target.value)} className={inputClass} />
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-bold text-sm text-gray-800 mb-1">🖼️ Tamaño del logo en el footer</h2>
+            <p className="text-xs text-gray-400 mb-4">Ajustá el ancho y alto en píxeles. Se aplica al logo subido desde la pestaña Identidad.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Ancho (px)</label><input type="number" min="40" max="500" value={footerLogoWidth} onChange={e => setFooterLogoWidth(e.target.value)} className={inputClass} /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">Alto (px)</label><input type="number" min="20" max="180" value={footerLogoHeight} onChange={e => setFooterLogoHeight(e.target.value)} className={inputClass} /></div>
+            </div>
           </div>
           <div className="flex justify-end">
             <button onClick={saveFooter} disabled={saving} className="bg-[#e8850c] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#d47a0b] disabled:opacity-50">
