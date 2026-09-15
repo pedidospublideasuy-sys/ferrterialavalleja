@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   const [categories, menuItems] = await Promise.all([
     prisma.category.findMany({
-      where: { active: true, showInMenu: true, parentId: null },
+      where: { active: true, parentId: null },
       select: {
         id: true,
         name: true,
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
         icon: true,
         menuOrder: true,
         children: {
-          where: { active: true, showInMenu: true },
+          where: { active: true },
           select: { id: true, name: true, slug: true, icon: true, menuOrder: true },
           orderBy: { menuOrder: 'asc' },
         },

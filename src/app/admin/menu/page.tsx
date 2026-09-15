@@ -83,19 +83,15 @@ export default function AdminMenu() {
   const saveCategories = async () => {
     setSaving(true);
     try {
-      const flat = categories.flatMap((c, i) => [
-        { id: c.id, showInMenu: c.showInMenu, menuOrder: i },
-        ...c.children.map((s, j) => ({ id: s.id, showInMenu: s.showInMenu, menuOrder: j })),
-      ]);
-      const res = await fetch('/api/admin/menu', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ categories: flat }) });
-      if (!res.ok) throw new Error();
-      const payload: Record<string, string> = {};
-      if (Array.isArray(menuCategories) && menuCategories.length > 0) payload.menu_categories = JSON.stringify(menuCategories);
-      if (Array.isArray(hamburgerCategories) && hamburgerCategories.length > 0) payload.hamburger_categories = JSON.stringify(hamburgerCategories);
       const settingsRes = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: payload }),
+        body: JSON.stringify({
+          settings: {
+            menu_categories: JSON.stringify(menuCategories),
+            hamburger_categories: JSON.stringify(hamburgerCategories),
+          },
+        }),
       });
       if (!settingsRes.ok) throw new Error();
       toast.success('MenÃº de categorÃ­as guardado');
