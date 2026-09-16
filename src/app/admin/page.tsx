@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import DashboardCharts from '@/components/admin/DashboardCharts';
+import AdminAmount from '@/components/admin/AdminAmount';
 
 export default async function AdminDashboard() {
   const [productCount, orderCount, userCount, totalSales, lowStock, pendingOrders, recentOrders] = await Promise.all([
@@ -84,7 +85,7 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         <div className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-[#e8850c]">
           <p className="text-xs text-gray-500 uppercase tracking-wider">Ventas Totales</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">USD {(totalSales._sum.total || 0).toFixed(0)}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1"><AdminAmount value={totalSales._sum.total || 0} /></p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
           <p className="text-xs text-gray-500 uppercase tracking-wider">Pedidos</p>
@@ -138,7 +139,7 @@ export default async function AdminDashboard() {
                     </Link>
                   </td>
                   <td className="py-3">{order.user.name}</td>
-                  <td className="py-3 font-medium">USD {order.total.toFixed(2)}</td>
+                  <td className="py-3 font-medium"><AdminAmount value={order.total} /></td>
                   <td className="py-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}>
                       {order.status}
@@ -167,7 +168,7 @@ export default async function AdminDashboard() {
                     <span className="w-6 h-6 rounded-full bg-[#e8850c] text-white text-xs flex items-center justify-center font-bold">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{p.name}</p>
-                      <p className="text-xs text-gray-400">{p._sum.quantity} vendidos · USD {(p._sum.subtotal || 0).toFixed(0)}</p>
+                      <p className="text-xs text-gray-400">{p._sum.quantity} vendidos · <AdminAmount value={p._sum.subtotal || 0} /></p>
                     </div>
                   </div>
                 ))}
