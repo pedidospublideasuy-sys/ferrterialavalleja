@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import AIChat from '@/components/admin/AIChat';
+import AdminCurrencySelector from '@/components/admin/AdminCurrencySelector';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -109,7 +110,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
       <main className="flex-1 overflow-y-auto">
-        <div className="p-8">{children}</div>
+        <div className="p-8">
+          <div className="mb-5 flex justify-end">
+            <AdminCurrencySelector />
+          </div>
+          {children}
+        </div>
       </main>
       <AIChat />
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { useCurrency } from '@/store/currency';
 
 interface Product {
   id: string;
@@ -23,6 +24,7 @@ interface Product {
 interface FilterOption { id: string; name: string; }
 
 export default function PreciosPage() {
+  const formatCurrency = useCurrency((state) => state.format);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<FilterOption[]>([]);
   const [brands, setBrands] = useState<FilterOption[]>([]);
@@ -262,7 +264,7 @@ export default function PreciosPage() {
     } catch { return null; }
   };
 
-  const fmt = (n: number) => 'USD ' + n.toFixed(2);
+  const fmt = (n: number) => formatCurrency(n, 'UYU');
 
   return (
     <div>
