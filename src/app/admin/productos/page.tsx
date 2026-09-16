@@ -15,11 +15,18 @@ export default async function AdminProducts({
   const activeFilter = params.active;
 
   const where: Record<string, unknown> = {};
-  if (search) where.OR = [
-    { name: { contains: search } },
-    { sku: { contains: search } },
-    { barcode: { contains: search } },
-  ];
+  if (search.trim()) {
+    const terms = search.trim().split(/\s+/).filter(Boolean);
+    where.AND = terms.map(term => ({
+      OR: [
+        { name: { contains: term, mode: 'insensitive' } },
+        { sku: { contains: term, mode: 'insensitive' } },
+        { barcode: { contains: term, mode: 'insensitive' } },
+        { description: { contains: term, mode: 'insensitive' } },
+        { tags: { contains: term, mode: 'insensitive' } },
+      ],
+    }));
+  }
   if (categoryId) where.categoryId = categoryId;
   if (activeFilter !== undefined && activeFilter !== '') where.active = activeFilter === 'true';
 
