@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,8 +13,9 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const variants = await prisma.productVariant.findMany({
-      where: { productId: params.id },
+      where: { productId: id },
       orderBy: { createdAt: "asc" },
     });
     return NextResponse.json(variants);
@@ -25,7 +26,7 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -33,6 +34,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await req.json();
     const { name, sku, price, comparePrice, stock, attributes, active } = body;
 
@@ -45,7 +47,7 @@ export async function POST(
 
     const variant = await prisma.productVariant.create({
       data: {
-        productId: params.id,
+        productId: id,
         name,
         sku: sku || null,
         price: parseFloat(price),

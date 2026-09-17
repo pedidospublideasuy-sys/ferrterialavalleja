@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string; variantId: string } }
+  { params }: { params: Promise<{ id: string; variantId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,11 +13,12 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { variantId } = await params;
     const body = await req.json();
     const { name, sku, price, comparePrice, stock, attributes, active } = body;
 
     const variant = await prisma.productVariant.update({
-      where: { id: params.variantId },
+      where: { id: variantId },
       data: {
         name,
         sku: sku || null,
@@ -37,7 +38,7 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string; variantId: string } }
+  { params }: { params: Promise<{ id: string; variantId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -45,8 +46,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { variantId } = await params;
     await prisma.productVariant.delete({
-      where: { id: params.variantId },
+      where: { id: variantId },
     });
 
     return NextResponse.json({ success: true });
