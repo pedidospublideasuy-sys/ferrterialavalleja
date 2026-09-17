@@ -51,9 +51,17 @@ function normalizeImageUrls(values: unknown): string[] {
 }
 
 function normalizeExternalImageUrl(value: string, baseUrl: string): string {
-  if (/^\/\//.test(value)) return `https:${value}`;
-  if (/^https?:\/\//i.test(value)) return value;
-  try { return new URL(value, `${new URL(baseUrl).origin}/`).toString(); } catch { return value; }
+  let url = value;
+  if (/^\/\//.test(url)) url = `https:${url}`;
+  else if (!/^https?:\/\//i.test(url)) {
+    try { url = new URL(url, `${new URL(baseUrl).origin}/`).toString(); } catch { /* ignore */ }
+  }
+  
+  // Fix for broken images by redirecting them to the API subdomain
+  url = url.replace('https://ferreterialavalleja.com', 'https://api.ferreterialavalleja.com');
+  url = url.replace('http://ferreterialavalleja.com', 'https://api.ferreterialavalleja.com');
+  
+  return url;
 }
 
 function htmlToText(value: string | null | undefined): string | null {
