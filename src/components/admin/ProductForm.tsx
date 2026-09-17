@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import ProductVariants from './ProductVariants';
 import toast from 'react-hot-toast';
 
 interface Category { id: string; name: string; parentId: string | null; children?: Category[] }
@@ -419,5 +420,6 @@ export default function ProductForm({ productId }: { productId?: string }) {
         </div>
       </div>
     </form>
+      {productId && <ProductVariants productId={productId} />}
   );
 }

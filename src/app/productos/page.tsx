@@ -19,8 +19,9 @@ export default async function ProductsPage({
   }
   if (params.search) {
     where.OR = [
-      { name: { contains: params.search } },
-      { sku: { contains: params.search } },
+      { name: { contains: params.search, mode: 'insensitive' } },
+      { sku: { contains: params.search, mode: 'insensitive' } },
+      { description: { contains: params.search, mode: 'insensitive' } },
     ];
   }
   if (params.minPrice || params.maxPrice) {

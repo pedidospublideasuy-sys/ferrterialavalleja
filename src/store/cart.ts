@@ -10,6 +10,7 @@ export interface CartProduct {
   image: string;
   sku: string;
   stock: number;
+  variantId?: string;
 }
 
 export interface CartItemType {
@@ -20,8 +21,8 @@ export interface CartItemType {
 interface CartState {
   items: CartItemType[];
   addItem: (product: CartProduct, qty?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, variantId?: string) => void;
+  updateQuantity: (productId: string, variantId: string | undefined, quantity: number) => void;
   updateProduct: (product: CartProduct) => void;
   clearCart: () => void;
   totalItems: () => number;
@@ -34,11 +35,11 @@ export const useCart = create<CartState>()(
       items: [],
       addItem: (product, qty = 1) => {
         const items = get().items;
-        const existing = items.find((i) => i.product.id === product.id);
+        const existing = items.find((i) => i.product.id === product.id && i.product.variantId === product.variantId);
         if (existing) {
           set({
             items: items.map((i) =>
-              i.product.id === product.id
+              i.product.id === product.id && i.product.variantId === product.variantId
                 ? { ...i, product, quantity: Math.min(i.quantity + qty, product.stock) }
                 : i
             ),
@@ -47,24 +48,24 @@ export const useCart = create<CartState>()(
           set({ items: [...items, { product, quantity: qty }] });
         }
       },
-      removeItem: (productId) => {
-        set({ items: get().items.filter((i) => i.product.id !== productId) });
+      removeItem: (productId, variantId) => {
+        set({ items: get().items.filter((i) => !(i.product.id === productId && i.product.variantId === variantId)) });
       },
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, variantId, quantity) => {
         if (quantity <= 0) {
-          get().removeItem(productId);
+          get().removeItem(productId, variantId);
           return;
         }
         set({
           items: get().items.map((i) =>
-            i.product.id === productId ? { ...i, quantity } : i
+            i.product.id === productId && i.product.variantId === variantId ? { ...i, quantity } : i
           ),
         });
       },
       updateProduct: (product) => {
         set({
           items: get().items.map((item) =>
-            item.product.id === product.id ? { ...item, product } : item
+            item.product.id === product.id && item.product.variantId === product.variantId ? { ...item, product } : item
           ),
         });
       },

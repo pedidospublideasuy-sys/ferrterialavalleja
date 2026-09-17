@@ -73,17 +73,17 @@ export default function CartPage() {
                 <p className="font-bold text-blue-900 mt-1">{formatCurrency(item.product.price, item.product.currency || 'UYU')}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="p-1 border rounded hover:bg-gray-100">
+                <button onClick={() => updateQuantity(item.product.id, item.product.variantId, item.quantity - 1)} className="p-1 border rounded hover:bg-gray-100">
                   <MinusIcon className="h-4 w-4" />
                 </button>
                 <span className="w-8 text-center font-medium">{item.quantity}</span>
-                <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="p-1 border rounded hover:bg-gray-100">
+                <button onClick={() => updateQuantity(item.product.id, item.product.variantId, item.quantity + 1)} className="p-1 border rounded hover:bg-gray-100">
                   <PlusIcon className="h-4 w-4" />
                 </button>
               </div>
               <div className="text-right">
                 <p className="font-bold text-gray-800">{formatCurrency(item.product.price * item.quantity, item.product.currency || 'UYU')}</p>
-                <button onClick={() => removeItem(item.product.id)} className="text-red-500 hover:text-red-700 mt-1">
+                <button onClick={() => removeItem(item.product.id, item.product.variantId)} className="text-red-500 hover:text-red-700 mt-1">
                   <TrashIcon className="h-5 w-5" />
                 </button>
               </div>
