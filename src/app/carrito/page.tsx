@@ -24,20 +24,22 @@ export default function CartPage() {
         for (const product of data?.products || []) {
           let images: string[] = [];
           try { images = JSON.parse(product.images || '[]'); } catch { /* keep stored image */ }
-          const current = items.find(item => item.product.id === product.id)?.product;
-          if (!current) continue;
-          const refreshed: CartProduct = {
-            ...current,
-            name: product.name,
-            slug: product.slug,
-            price: product.price,
-            currency: product.sourceApi ? 'UYU' : (product.currency === 'USD' ? 'USD' : 'UYU'),
-            image: images[0] || current.image,
-            sku: product.sku,
-            stock: product.stock,
-          };
-          if (current.price !== refreshed.price || current.name !== refreshed.name || current.stock !== refreshed.stock || current.currency !== refreshed.currency || current.image !== refreshed.image) {
-            updateProduct(refreshed);
+          // Only refresh non-variant items; variant items keep their own price/name
+          const matchingItems = items.filter(item => item.product.id === product.id && !item.product.variantId);
+          for (const { product: current } of matchingItems) {
+            const refreshed: CartProduct = {
+              ...current,
+              name: product.name,
+              slug: product.slug,
+              price: product.price,
+              currency: product.sourceApi ? 'UYU' : (product.currency === 'USD' ? 'USD' : 'UYU'),
+              image: images[0] || current.image,
+              sku: product.sku,
+              stock: product.stock,
+            };
+            if (current.price !== refreshed.price || current.name !== refreshed.name || current.stock !== refreshed.stock || current.currency !== refreshed.currency || current.image !== refreshed.image) {
+              updateProduct(refreshed);
+            }
           }
         }
       })
@@ -62,8 +64,8 @@ export default function CartPage() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">🛒 Mi Carrito</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
-            <div key={item.product.id} className="bg-white rounded-xl border p-4 flex gap-4 items-center">
+          {items.map((item, idx) => (
+            <div key={`${item.product.id}-${item.product.variantId || idx}`} className="bg-white rounded-xl border p-4 flex gap-4 items-center">
               <div className="relative w-20 h-20 bg-gray-50 rounded-lg flex-shrink-0">
                 <Image src={item.product.image || '/placeholder-product.svg'} alt={item.product.name} fill className="object-contain p-2" sizes="80px" />
               </div>
