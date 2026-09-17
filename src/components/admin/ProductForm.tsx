@@ -141,6 +141,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
   const labelClass = "block text-xs font-medium text-gray-600 mb-1";
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">
@@ -420,6 +421,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
         </div>
       </div>
     </form>
-      {productId && <ProductVariants productId={productId} />}
+    {productId && <ProductVariants productId={productId} />}
+    </>
   );
 }
