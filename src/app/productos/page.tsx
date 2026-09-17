@@ -39,21 +39,66 @@ export default async function ProductsPage({
   const page = Math.max(1, parseInt(params.page || '1'));
   const skip = (page - 1) * PAGE_SIZE;
 
-  const [products, total, categories, brands, priceRange] = await Promise.all([
-    prisma.product.findMany({
+  // When searching without explicit sort, prioritize name matches
+  let products: any[];
+  let total: number;
+
+  if (params.search && !params.sort) {
+    // First: products matching by name
+    const nameWhere = { ...where, OR: undefined, name: { contains: params.search, mode: 'insensitive' as const } };
+    // Copy non-OR filters
+    if (where.category) nameWhere.category = where.category;
+    if (where.brand) nameWhere.brand = where.brand;
+    if (where.price) nameWhere.price = where.price;
+
+    const selectFields = {
+      id: true, name: true, slug: true, price: true, comparePrice: true,
+      images: true, sku: true, stock: true, isNew: true, featured: true,
+      description: true,
+      category: { select: { name: true, slug: true } },
+      brand: { select: { name: true, slug: true } },
+    };
+
+    const nameProducts = await prisma.product.findMany({
+      where: { active: true, name: { contains: params.search, mode: 'insensitive' }, ...(params.cat ? { category: { slug: params.cat } } : {}), ...(params.brand ? { brand: { slug: params.brand } } : {}) },
+      orderBy: { name: 'asc' },
+      select: selectFields,
+    });
+
+    const nameIds = new Set(nameProducts.map((p: any) => p.id));
+
+    const otherProducts = await prisma.product.findMany({
       where,
-      orderBy,
-      skip,
-      take: PAGE_SIZE,
-      select: {
-        id: true, name: true, slug: true, price: true, comparePrice: true,
-        images: true, sku: true, stock: true, isNew: true, featured: true,
-        description: true,
-        category: { select: { name: true, slug: true } },
-        brand: { select: { name: true, slug: true } },
-      },
-    }),
-    prisma.product.count({ where }),
+      orderBy: { name: 'asc' },
+      select: selectFields,
+    });
+
+    // Combine: name matches first, then the rest (deduplicated)
+    const combined = [...nameProducts, ...otherProducts.filter((p: any) => !nameIds.has(p.id))];
+    total = combined.length;
+    products = combined.slice(skip, skip + PAGE_SIZE);
+  } else {
+    const [p, t] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy,
+        skip,
+        take: PAGE_SIZE,
+        select: {
+          id: true, name: true, slug: true, price: true, comparePrice: true,
+          images: true, sku: true, stock: true, isNew: true, featured: true,
+          description: true,
+          category: { select: { name: true, slug: true } },
+          brand: { select: { name: true, slug: true } },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
+    products = p;
+    total = t;
+  }
+
+  const [categories, brands, priceRange] = await Promise.all([
     prisma.category.findMany({ select: { id: true, name: true, slug: true }, orderBy: { name: 'asc' } }),
     prisma.brand.findMany({ select: { id: true, name: true, slug: true }, orderBy: { name: 'asc' } }),
     prisma.product.aggregate({ where: { active: true }, _min: { price: true }, _max: { price: true } }),
