@@ -379,8 +379,9 @@ model ProductVariant {
   price         Float
   comparePrice  Float?
   stock         Int      @default(0)
-  attributes    String   @default("{}") // JSON
+  attributes    String   @default("{}") // JSON stringificado con los atributos
   active        Boolean  @default(true)
+  imageUrl      String?  // Agregado para soportar imagen por variante
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
