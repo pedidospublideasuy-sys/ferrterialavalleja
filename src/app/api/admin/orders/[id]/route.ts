@@ -48,19 +48,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (body.status === 'cancelled') {
       const items = await prisma.orderItem.findMany({ where: { orderId: id } });
       for (const item of items) {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: { stock: { increment: item.quantity } },
-        });
-        await prisma.stockMovement.create({
-          data: {
-            productId: item.productId,
-            type: 'in',
-            quantity: item.quantity,
-            reason: 'devolucion',
-            reference: `Pedido ${order.orderNumber} cancelado`,
-          },
-        });
+        if (item.productId) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+          await prisma.stockMovement.create({
+            data: {
+              productId: item.productId,
+              type: 'in',
+              quantity: item.quantity,
+              reason: 'devolucion',
+              reference: `Pedido ${order.orderNumber} cancelado`,
+            },
+          });
+        }
       }
     }
 

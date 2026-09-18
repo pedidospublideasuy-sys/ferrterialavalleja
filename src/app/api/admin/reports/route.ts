@@ -74,11 +74,12 @@ export async function GET(req: NextRequest) {
       const productSales: Record<string, { name: string; qty: number; revenue: number }> = {};
       for (const o of orders) {
         for (const item of o.items) {
-          if (!productSales[item.productId]) {
-            productSales[item.productId] = { name: item.name, qty: 0, revenue: 0 };
+          const key = item.productId || ('deleted-' + item.name);
+          if (!productSales[key]) {
+            productSales[key] = { name: item.name, qty: 0, revenue: 0 };
           }
-          productSales[item.productId].qty += item.quantity;
-          productSales[item.productId].revenue += item.subtotal;
+          productSales[key].qty += item.quantity;
+          productSales[key].revenue += item.subtotal;
         }
       }
 
