@@ -5,7 +5,7 @@ import ProductListTable from '@/components/admin/ProductListTable';
 export default async function AdminProducts({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; search?: string; category?: string; brand?: string; active?: string }>;
+  searchParams: Promise<{ page?: string; search?: string; category?: string; brand?: string; active?: string; type?: string }>;
 }) {
   const params = await searchParams;
   const page = parseInt(params.page || '1');
@@ -13,6 +13,7 @@ export default async function AdminProducts({
   const search = params.search || '';
   const categoryId = params.category || '';
   const activeFilter = params.active;
+  const typeFilter = params.type || '';
 
   const where: Record<string, unknown> = {};
   if (search.trim()) {
@@ -29,11 +30,16 @@ export default async function AdminProducts({
   }
   if (categoryId) where.categoryId = categoryId;
   if (activeFilter !== undefined && activeFilter !== '') where.active = activeFilter === 'true';
+  if (typeFilter === 'variable') {
+    where.variants = { some: {} };
+  } else if (typeFilter === 'comun') {
+    where.variants = { none: {} };
+  }
 
   const [products, total, categories, brands] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { category: true, brand: true },
+      include: { category: true, brand: true, variants: { select: { id: true } } },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -69,23 +75,25 @@ export default async function AdminProducts({
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
         <form className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs text-gray-500 mb-1">Buscar</label>
+            <label className="block text-xs text-gray-500 mb-1">Buscar (Nombre, SKU)</label>
             <input type="text" name="search" defaultValue={search} placeholder="Nombre, SKU o código..."
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30" />
           </div>
-          <div className="w-48">
+          <div className="w-32">
+            <label className="block text-xs text-gray-500 mb-1">Tipo</label>
+            <select name="type" defaultValue={typeFilter}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30">
+              <option value="">Todos</option>
+              <option value="variable">Variables</option>
+              <option value="comun">Simples (Comunes)</option>
+            </select>
+          </div>
+          <div className="w-40">
             <label className="block text-xs text-gray-500 mb-1">Categoría</label>
             <select name="category" defaultValue={categoryId}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30">
               <option value="">Todas</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div className="w-48">
-            <label className="block text-xs text-gray-500 mb-1">Marca</label>
-            <select name="brand" defaultValue={params.brand || ''} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30">
-              <option value="">Todas</option>
-              {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </div>
           <div className="w-36">
