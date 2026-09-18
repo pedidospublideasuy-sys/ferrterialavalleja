@@ -87,6 +87,17 @@ export async function POST(req: NextRequest) {
         dimensions: body.dimensions || null,
         warranty: body.warranty || null,
         tags: body.tags || null,
+        variants: body.variants && body.variants.length > 0 ? {
+          create: body.variants.map((v: any) => ({
+            name: v.name,
+            sku: v.sku || null,
+            price: v.price,
+            comparePrice: v.comparePrice || null,
+            stock: v.stock || 0,
+            attributes: v.attributes || '{}',
+            active: v.active !== false
+          }))
+        } : undefined
       },
     });
 

@@ -49,9 +49,10 @@ export default function ProductForm({ productId }: { productId?: string }) {
   const [data, setData] = useState<ProductData>(emptyProduct);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!productId);
   const [saving, setSaving] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [draftVariants, setDraftVariants] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -100,7 +101,10 @@ export default function ProductForm({ productId }: { productId?: string }) {
     try {
       const url = productId ? `/api/admin/products/${productId}` : '/api/admin/products';
       const method = productId ? 'PUT' : 'POST';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      
+      const payload = { ...data, variants: draftVariants };
+      
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 
       if (!res.ok) {
         const err = await res.json();
@@ -421,7 +425,11 @@ export default function ProductForm({ productId }: { productId?: string }) {
         </div>
       </div>
     </form>
-    {productId && <ProductVariants productId={productId} />}
+    <ProductVariants 
+      productId={productId} 
+      draftVariants={draftVariants} 
+      onDraftVariantsChange={setDraftVariants} 
+    />
     </>
   );
 }
