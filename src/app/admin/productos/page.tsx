@@ -36,7 +36,7 @@ export default async function AdminProducts({
     where.variants = { none: {} };
   }
 
-  const [products, total, categories, brands] = await Promise.all([
+  const [products, total, categories, brands, totalCount, varCount, simpleCount] = await Promise.all([
     prisma.product.findMany({
       where,
       include: { category: true, brand: true, variants: { select: { id: true } } },
@@ -54,6 +54,9 @@ export default async function AdminProducts({
     prisma.brand.findMany({
       orderBy: { name: 'asc' },
     }),
+    prisma.product.count(),
+    prisma.product.count({ where: { variants: { some: {} } } }),
+    prisma.product.count({ where: { variants: { none: {} } } }),
   ]);
 
   const pages = Math.ceil(total / limit);
@@ -79,13 +82,13 @@ export default async function AdminProducts({
             <input type="text" name="search" defaultValue={search} placeholder="Nombre, SKU o código..."
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30" />
           </div>
-          <div className="w-32">
+          <div className="w-36">
             <label className="block text-xs text-gray-500 mb-1">Tipo</label>
             <select name="type" defaultValue={typeFilter}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e8850c]/30">
-              <option value="">Todos</option>
-              <option value="variable">Variables</option>
-              <option value="comun">Simples (Comunes)</option>
+              <option value="">Todos ({totalCount})</option>
+              <option value="variable">Variables ({varCount})</option>
+              <option value="comun">Simples ({simpleCount})</option>
             </select>
           </div>
           <div className="w-40">
