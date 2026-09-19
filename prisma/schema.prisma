@@ -165,6 +165,8 @@ model Order {
   shipping      Float       @default(0)
   discount      Float       @default(0)
   total         Float
+  totalUYU      Float       @default(0)
+  totalUSD      Float       @default(0)
   notes         String?
   internalNotes String?
   shippingAddr  String?
@@ -192,6 +194,7 @@ model OrderItem {
   name      String
   sku       String
   price     Float
+  currency  String  @default("UYU")
   quantity  Int
   subtotal  Float
   variantId String?

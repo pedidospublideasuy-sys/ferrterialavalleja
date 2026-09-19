@@ -8,7 +8,7 @@ export default async function AdminDashboard() {
     prisma.product.count(),
     prisma.order.count(),
     prisma.user.count(),
-    prisma.order.aggregate({ _sum: { total: true }, where: { paymentStatus: 'paid' } }),
+    prisma.order.aggregate({ _sum: { totalUYU: true, totalUSD: true }, where: { paymentStatus: 'paid' } }),
     prisma.product.count({ where: { stock: { lte: 5 }, active: true } }),
     prisma.order.count({ where: { status: 'pending' } }),
     prisma.order.findMany({
@@ -84,8 +84,11 @@ export default async function AdminDashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         <div className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-[#e8850c]">
-          <p className="text-xs text-gray-500 uppercase tracking-wider">Ventas Totales</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1"><AdminAmount value={totalSales._sum.total || 0} /></p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Ventas Totales (UYU)</p>
+          <p className="text-xl font-bold text-gray-900 mt-1"><AdminAmount value={totalSales._sum.totalUYU || 0} from="UYU" /></p>
+          <div className="border-t my-2 border-gray-100"></div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Ventas Totales (USD)</p>
+          <p className="text-xl font-bold text-gray-900 mt-1"><AdminAmount value={totalSales._sum.totalUSD || 0} from="USD" /></p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
           <p className="text-xs text-gray-500 uppercase tracking-wider">Pedidos</p>

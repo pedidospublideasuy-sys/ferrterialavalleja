@@ -14,19 +14,28 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { items, name, address, city, phone, notes, paymentMethod } = body;
 
-    let subtotal = 0;
+    let subtotalUYU = 0;
+    let subtotalUSD = 0;
     const orderItems = [];
 
     for (const item of items) {
       const product = await prisma.product.findUnique({ where: { id: item.productId } });
       if (!product) continue;
       const lineTotal = product.price * item.quantity;
-      subtotal += lineTotal;
+      const currency = product.currency || 'UYU';
+      
+      if (currency === 'USD') {
+        subtotalUSD += lineTotal;
+      } else {
+        subtotalUYU += lineTotal;
+      }
+
       orderItems.push({
         productId: product.id,
         name: product.name,
         sku: product.sku,
         price: product.price,
+        currency: currency,
         quantity: item.quantity,
         subtotal: lineTotal,
       });
@@ -36,8 +45,10 @@ export async function POST(request: NextRequest) {
       data: {
         orderNumber: generateOrderNumber(),
         userId: session.user.id as string,
-        subtotal,
-        total: subtotal,
+        subtotal: subtotalUYU + subtotalUSD, // Legacy aggregate
+        total: subtotalUYU + subtotalUSD, // Legacy aggregate
+        totalUYU: subtotalUYU,
+        totalUSD: subtotalUSD,
         shippingAddr: (address || '') + ', ' + (city || ''),
         notes,
         paymentMethod,

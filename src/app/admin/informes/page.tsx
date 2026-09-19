@@ -9,7 +9,7 @@ interface ReportData {
   type: string;
   summary: Record<string, unknown>;
   data: Record<string, unknown>[];
-  topProducts?: { name: string; qty: number; revenue: number }[];
+  topProducts?: { name: string; qty: number; revenueUYU: number; revenueUSD: number; currency: string }[];
 }
 
 const reportTypes: { key: ReportType; label: string; icon: string; desc: string }[] = [
@@ -142,17 +142,20 @@ export default function AdminInformes() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(summary).filter(([, val]) => typeof val !== 'object').map(([key, val]) => {
                 const labels: Record<string, string> = {
-                  total: 'Total', totalAmount: 'Monto Total', totalOrders: 'Total Pedidos',
-                  totalRevenue: 'Ingresos Totales', avgOrderValue: 'Ticket Promedio',
-                  totalItems: 'Items Vendidos', totalProducts: 'Productos', lowStock: 'Stock Bajo',
-                  outOfStock: 'Sin Stock', totalStockValue: 'Valor del Inventario',
+                  total: 'Total', totalAmountUYU: 'Monto Total (UYU)', totalAmountUSD: 'Monto Total (USD)', totalOrders: 'Total Pedidos',
+                  totalRevenueUYU: 'Ingresos (UYU)', totalRevenueUSD: 'Ingresos (USD)',
+                  totalItems: 'Items Vendidos', totalProducts: 'Productos Totales', lowStock: 'Stock Bajo',
+                  outOfStock: 'Sin Stock', totalStockValueUYU: 'Valor Inv. (UYU)', totalStockValueUSD: 'Valor Inv. (USD)',
+                  totalProductsUYU: 'Modelos en UYU', totalProductsUSD: 'Modelos en USD',
                 };
-                const isAmount = key.toLowerCase().includes('amount') || key.toLowerCase().includes('revenue') || key.toLowerCase().includes('value') || key.toLowerCase().includes('avg');
+                const isAmount = key.toLowerCase().includes('amount') || key.toLowerCase().includes('revenue') || key.toLowerCase().includes('value');
+                const currency = key.includes('UYU') ? 'UYU' : (key.includes('USD') ? 'USD' : '');
+                
                 return (
                   <div key={key} className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-[#e8850c]">
                     <p className="text-xs text-gray-500">{labels[key] || key}</p>
                     <p className="text-xl font-bold mt-1">
-                      {isAmount ? `USD ${Number(val).toFixed(2)}` : String(val)}
+                      {isAmount ? `${currency} ${Number(val).toFixed(2)}` : String(val)}
                     </p>
                   </div>
                 );
@@ -179,7 +182,10 @@ export default function AdminInformes() {
                       <td className="py-2 text-gray-400">{i + 1}</td>
                       <td className="py-2 font-medium">{p.name}</td>
                       <td className="py-2 text-right">{p.qty}</td>
-                      <td className="py-2 text-right font-bold">USD {p.revenue.toFixed(2)}</td>
+                      <td className="py-2 text-right font-bold">
+                        {p.revenueUYU > 0 && <div>UYU {p.revenueUYU.toFixed(2)}</div>}
+                        {p.revenueUSD > 0 && <div>USD {p.revenueUSD.toFixed(2)}</div>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

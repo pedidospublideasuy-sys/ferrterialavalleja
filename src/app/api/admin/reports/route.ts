@@ -35,7 +35,8 @@ export async function GET(req: NextRequest) {
 
       const summary = {
         total: orders.length,
-        totalAmount: orders.reduce((acc, o) => acc + o.total, 0),
+        totalAmountUYU: orders.reduce((acc, o) => acc + (o.totalUYU || 0), 0),
+        totalAmountUSD: orders.reduce((acc, o) => acc + (o.totalUSD || 0), 0),
         byStatus: {} as Record<string, number>,
         byPayment: {} as Record<string, number>,
       };
@@ -56,6 +57,8 @@ export async function GET(req: NextRequest) {
           tax: o.tax,
           shipping: o.shipping,
           total: o.total,
+          totalUYU: o.totalUYU,
+          totalUSD: o.totalUSD,
           status: o.status,
           paymentStatus: o.paymentStatus,
           paymentMethod: o.paymentMethod,
@@ -71,37 +74,43 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
 
-      const productSales: Record<string, { name: string; qty: number; revenue: number }> = {};
+      const productSales: Record<string, { name: string; qty: number; revenueUYU: number; revenueUSD: number; currency: string }> = {};
       for (const o of orders) {
         for (const item of o.items) {
           const key = item.productId || ('deleted-' + item.name);
           if (!productSales[key]) {
-            productSales[key] = { name: item.name, qty: 0, revenue: 0 };
+            productSales[key] = { name: item.name, qty: 0, revenueUYU: 0, revenueUSD: 0, currency: item.currency || 'UYU' };
           }
           productSales[key].qty += item.quantity;
-          productSales[key].revenue += item.subtotal;
+          if ((item.currency || 'UYU') === 'USD') {
+            productSales[key].revenueUSD += item.subtotal;
+          } else {
+            productSales[key].revenueUYU += item.subtotal;
+          }
         }
       }
 
       const topProducts = Object.values(productSales)
-        .sort((a, b) => b.revenue - a.revenue)
+        .sort((a, b) => (b.revenueUYU + b.revenueUSD * 40) - (a.revenueUYU + a.revenueUSD * 40)) // rough sort
         .slice(0, 50);
 
-      const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
-      const avgOrderValue = orders.length ? totalRevenue / orders.length : 0;
+      const totalRevenueUYU = orders.reduce((acc, o) => acc + (o.totalUYU || 0), 0);
+      const totalRevenueUSD = orders.reduce((acc, o) => acc + (o.totalUSD || 0), 0);
 
       return NextResponse.json({
         type: 'sales',
         summary: {
           totalOrders: orders.length,
-          totalRevenue,
-          avgOrderValue,
+          totalRevenueUYU,
+          totalRevenueUSD,
           totalItems: orders.reduce((acc, o) => acc + o.items.reduce((a, i) => a + i.quantity, 0), 0),
         },
         topProducts,
         data: orders.map(o => ({
           orderNumber: o.orderNumber,
           total: o.total,
+          totalUYU: o.totalUYU,
+          totalUSD: o.totalUSD,
           items: o.items.length,
           date: o.createdAt,
         })),
@@ -128,7 +137,10 @@ export async function GET(req: NextRequest) {
           totalProducts: products.length,
           lowStock: lowStock.length,
           outOfStock: outOfStock.length,
-          totalStockValue: totalValue,
+          totalStockValueUYU: products.filter(p => p.currency !== 'USD').reduce((acc, p) => acc + p.price * p.stock, 0),
+          totalStockValueUSD: products.filter(p => p.currency === 'USD').reduce((acc, p) => acc + p.price * p.stock, 0),
+          totalProductsUYU: products.filter(p => p.currency !== 'USD').length,
+          totalProductsUSD: products.filter(p => p.currency === 'USD').length,
         },
         data: products.map(p => ({
           sku: p.sku || '-',
@@ -137,6 +149,7 @@ export async function GET(req: NextRequest) {
           brand: p.brand?.name || '-',
           stock: p.stock,
           price: p.price,
+          currency: p.currency,
           cost: p.cost,
           stockValue: p.price * p.stock,
         })),
