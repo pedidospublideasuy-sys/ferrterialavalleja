@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 
 async function isAdmin() {
   const session = await getServerSession(authOptions);
-  return session?.user?.role === 'admin';
+  return session?.user?.role === 'admin' || session?.user?.role === 'store_admin';
 }
 
 export async function GET() {

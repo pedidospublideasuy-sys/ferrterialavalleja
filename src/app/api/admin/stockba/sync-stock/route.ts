@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 async function isAdmin() {
   const session = await getServerSession(authOptions);
   const role = (session?.user as any)?.role;
-  return role === 'admin' || role === 'ADMIN';
+  return role === 'admin' || role === 'ADMIN' || role === 'store_admin';
 }
 import prisma from '@/lib/prisma';
 import { getStockBAProductStock } from '@/lib/stockba';

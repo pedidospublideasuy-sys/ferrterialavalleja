@@ -33,6 +33,8 @@ const roleLabels: Record<string, string> = {
 export default function AdminUsuarios() {
   const { data: session } = useSession();
   const isSuperAdmin = session?.user?.role === 'admin';
+
+
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
