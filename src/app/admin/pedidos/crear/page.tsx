@@ -6,8 +6,8 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 interface User { id: string; name: string; email: string }
-interface Product { id: string; name: string; price: number; stock: number; sku: string }
-interface CartLine { productId: string; name: string; price: number; quantity: number; maxStock: number }
+interface Product { id: string; name: string; price: number; stock: number; sku: string; currency?: string; }
+interface CartLine { productId: string; name: string; price: number; quantity: number; maxStock: number; currency: string; }
 
 export default function CrearPedidoPage() {
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function CrearPedidoPage() {
     if (lines.find(l => l.productId === p.id)) {
       setLines(lines.map(l => l.productId === p.id ? { ...l, quantity: Math.min(l.quantity + 1, l.maxStock) } : l));
     } else {
-      setLines([...lines, { productId: p.id, name: p.name, price: p.price, quantity: 1, maxStock: p.stock }]);
+      setLines([...lines, { productId: p.id, name: p.name, price: p.price, quantity: 1, maxStock: p.stock, currency: p.currency || 'UYU' }]);
     }
     setProductSearch('');
   };
@@ -52,7 +52,8 @@ export default function CrearPedidoPage() {
 
   const removeLine = (idx: number) => setLines(lines.filter((_, i) => i !== idx));
 
-  const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0);
+  const subtotalUYU = lines.filter(l => l.currency !== 'USD').reduce((acc, l) => acc + (l.price * l.quantity), 0);
+  const subtotalUSD = lines.filter(l => l.currency === 'USD').reduce((acc, l) => acc + (l.price * l.quantity), 0);
 
   const handleCreate = async () => {
     if (!selectedUser) { toast.error('Seleccione un cliente'); return; }
@@ -108,7 +109,7 @@ export default function CrearPedidoPage() {
                         <div className="font-medium">{p.name}</div>
                         <div className="text-xs text-gray-400">{p.sku || 'Sin SKU'} · Stock: {p.stock}</div>
                       </div>
-                      <span className="font-bold text-gray-700">USD {p.price.toFixed(2)}</span>
+                      <span className="font-bold text-gray-700">{p.currency || 'UYU'} {p.price.toFixed(2)}</span>
                     </button>
                   ))}
                 </div>
@@ -130,13 +131,13 @@ export default function CrearPedidoPage() {
                   {lines.map((l, i) => (
                     <tr key={l.productId} className="border-t">
                       <td className="py-3 font-medium">{l.name}</td>
-                      <td className="py-3 text-right">USD {l.price.toFixed(2)}</td>
+                      <td className="py-3 text-right">{l.currency || 'UYU'} {l.price.toFixed(2)}</td>
                       <td className="py-3 text-center">
                         <input type="number" min={1} max={l.maxStock} value={l.quantity}
                           onChange={e => updateQty(i, parseInt(e.target.value) || 1)}
                           className="w-16 text-center border rounded px-2 py-1 text-sm" />
                       </td>
-                      <td className="py-3 text-right font-bold">USD {(l.price * l.quantity).toFixed(2)}</td>
+                      <td className="py-3 text-right font-bold">{l.currency || 'UYU'} {(l.price * l.quantity).toFixed(2)}</td>
                       <td className="py-3 text-center">
                         <button onClick={() => removeLine(i)} className="text-red-500 hover:text-red-700 text-xs">✕</button>
                       </td>
@@ -148,8 +149,10 @@ export default function CrearPedidoPage() {
               <p className="text-center text-gray-400 py-8">Busque y agregue productos al pedido</p>
             )}
 
-            <div className="mt-4 pt-4 border-t text-right">
-              <span className="text-lg font-bold">Total: USD {subtotal.toFixed(2)}</span>
+            <div className="mt-4 pt-4 border-t text-right flex flex-col gap-1 items-end">
+              {subtotalUYU > 0 && <span className="text-lg font-bold">Total UYU: {subtotalUYU.toFixed(2)}</span>}
+              {subtotalUSD > 0 && <span className="text-lg font-bold text-green-700">Total USD: {subtotalUSD.toFixed(2)}</span>}
+              {subtotalUYU === 0 && subtotalUSD === 0 && <span className="text-lg font-bold">Total: 0.00</span>}
             </div>
           </div>
 
@@ -225,7 +228,8 @@ export default function CrearPedidoPage() {
             <div className="text-sm space-y-1 text-gray-600">
               <div className="flex justify-between"><span>Productos:</span><span>{lines.length}</span></div>
               <div className="flex justify-between"><span>Items:</span><span>{lines.reduce((s, l) => s + l.quantity, 0)}</span></div>
-              <div className="flex justify-between font-bold text-lg pt-2 border-t text-gray-800"><span>Total:</span><span>USD {subtotal.toFixed(2)}</span></div>
+              {subtotalUYU > 0 && <div className="flex justify-between font-bold text-lg pt-2 border-t text-gray-800"><span>Total UYU:</span><span>{subtotalUYU.toFixed(2)}</span></div>}
+              {subtotalUSD > 0 && <div className="flex justify-between font-bold text-lg pt-2 border-t text-green-700"><span>Total USD:</span><span>{subtotalUSD.toFixed(2)}</span></div>}
             </div>
             <button onClick={handleCreate} disabled={saving || !selectedUser || !lines.length}
               className="w-full mt-4 bg-[#e8850c] text-white px-4 py-3 rounded-lg text-sm font-semibold hover:bg-[#d47a0b] disabled:opacity-50 disabled:cursor-not-allowed">

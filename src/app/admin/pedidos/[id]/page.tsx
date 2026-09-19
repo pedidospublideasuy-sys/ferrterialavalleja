@@ -16,6 +16,8 @@ interface OrderDetail {
   shipping: number;
   discount: number;
   total: number;
+  totalUYU: number;
+  totalUSD: number;
   notes: string | null;
   internalNotes: string | null;
   shippingAddr: string | null;
@@ -25,8 +27,30 @@ interface OrderDetail {
   trackingUrl: string | null;
   createdAt: string;
   user: { id: string; name: string; email: string; phone: string | null };
-  items: { id: string; name: string; sku: string; price: number; quantity: number; subtotal: number; product: { id: string; images: string } }[];
-  payments: { id: string; method: string; status: string; amount: number; externalId: string | null; paidAt: string | null }[];
+  items: {
+    id: string;
+    name: string;
+    sku: string;
+    price: number;
+    quantity: number;
+    subtotal: number;
+    currency: string;
+    product: { id: string; images: string };
+    variant: {
+      id: string;
+      name: string;
+      sku: string;
+    } | null;
+  }[];
+  payments: {
+    id: string;
+    method: string;
+    status: string;
+    amount: number;
+    currency: string;
+    externalId: string | null;
+    paidAt: string | null;
+  }[];
   returns: { id: string; reason: string; status: string; refundAmount: number | null; createdAt: string }[];
 }
 
@@ -147,9 +171,9 @@ export default function OrderDetailPage({ params: paramsPromise }: { params: Pro
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 text-right">USD {item.price.toFixed(2)}</td>
+                      <td className="py-3 text-right">{item.currency || 'UYU'} {item.price.toFixed(2)}</td>
                       <td className="py-3 text-center">{item.quantity}</td>
-                      <td className="py-3 text-right font-medium">USD {item.subtotal.toFixed(2)}</td>
+                      <td className="py-3 text-right font-medium">{item.currency || 'UYU'} {item.subtotal.toFixed(2)}</td>
                     </tr>
                   );
                 })}
@@ -157,11 +181,21 @@ export default function OrderDetailPage({ params: paramsPromise }: { params: Pro
             </table>
 
             <div className="mt-4 pt-4 border-t space-y-1 text-sm text-right">
-              <div className="flex justify-end gap-8"><span className="text-gray-500">Subtotal:</span><span>USD {order.subtotal.toFixed(2)}</span></div>
-              {order.shipping > 0 && <div className="flex justify-end gap-8"><span className="text-gray-500">Envío:</span><span>USD {order.shipping.toFixed(2)}</span></div>}
-              {order.discount > 0 && <div className="flex justify-end gap-8"><span className="text-gray-500">Descuento:</span><span className="text-green-600">-USD {order.discount.toFixed(2)}</span></div>}
-              {order.tax > 0 && <div className="flex justify-end gap-8"><span className="text-gray-500">Impuestos:</span><span>USD {order.tax.toFixed(2)}</span></div>}
-              <div className="flex justify-end gap-8 text-lg font-bold pt-2"><span>Total:</span><span>USD {order.total.toFixed(2)}</span></div>
+              {order.totalUYU === 0 && order.totalUSD === 0 && (
+                <>
+                  <div className="flex justify-end gap-8"><span className="text-gray-500">Subtotal:</span><span>UYU {order.subtotal.toFixed(2)}</span></div>
+                  {order.shipping > 0 && <div className="flex justify-end gap-8"><span className="text-gray-500">Envío:</span><span>UYU {order.shipping.toFixed(2)}</span></div>}
+                  {order.discount > 0 && <div className="flex justify-end gap-8"><span className="text-gray-500">Descuento:</span><span className="text-green-600">-UYU {order.discount.toFixed(2)}</span></div>}
+                  {order.tax > 0 && <div className="flex justify-end gap-8"><span className="text-gray-500">Impuestos:</span><span>UYU {order.tax.toFixed(2)}</span></div>}
+                  <div className="flex justify-end gap-8 text-lg font-bold pt-2"><span>Total:</span><span>UYU {order.total.toFixed(2)}</span></div>
+                </>
+              )}
+              {order.totalUYU > 0 && (
+                <div className="flex justify-end gap-8 text-lg font-bold pt-2 border-t mt-2"><span>Total (UYU):</span><span>UYU {order.totalUYU.toFixed(2)}</span></div>
+              )}
+              {order.totalUSD > 0 && (
+                <div className="flex justify-end gap-8 text-lg font-bold pt-2 border-t mt-2 text-green-700"><span>Total (USD):</span><span>USD {order.totalUSD.toFixed(2)}</span></div>
+              )}
             </div>
           </div>
 
@@ -175,10 +209,10 @@ export default function OrderDetailPage({ params: paramsPromise }: { params: Pro
                     <span className="font-medium">{p.method}</span>
                     {p.externalId && <span className="text-xs text-gray-400 ml-2">ID: {p.externalId}</span>}
                   </div>
-                  <div className="text-right">
-                    <span className="font-medium">USD {p.amount.toFixed(2)}</span>
-                    <span className={`ml-2 text-xs ${p.status === 'approved' ? 'text-green-600' : 'text-yellow-600'}`}>{p.status}</span>
-                  </div>
+                    <div className="text-right">
+                      <span className="font-medium">{p.currency || 'UYU'} {p.amount.toFixed(2)}</span>
+                      <span className={`ml-2 text-xs ${p.status === 'approved' ? 'text-green-600' : 'text-yellow-600'}`}>{p.status}</span>
+                    </div>
                 </div>
               ))}
             </div>

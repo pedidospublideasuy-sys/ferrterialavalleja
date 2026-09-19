@@ -21,8 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate products exist and have stock
-    let subtotal = 0;
-    const orderItems: { productId: string; name: string; sku: string; price: number; quantity: number; subtotal: number }[] = [];
+    let subtotalUYU = 0;
+    let subtotalUSD = 0;
+    const orderItems: { productId: string; name: string; sku: string; price: number; quantity: number; subtotal: number; currency: string }[] = [];
 
     for (const item of items) {
       const product = await prisma.product.findUnique({ where: { id: item.productId } });
@@ -30,14 +31,21 @@ export async function POST(req: NextRequest) {
 
       const qty = parseInt(item.quantity) || 1;
       const price = product.price;
+      const currency = product.currency || 'UYU';
       const itemSubtotal = price * qty;
-      subtotal += itemSubtotal;
+
+      if (currency === 'USD') {
+        subtotalUSD += itemSubtotal;
+      } else {
+        subtotalUYU += itemSubtotal;
+      }
 
       orderItems.push({
         productId: product.id,
         name: product.name,
         sku: product.sku || '',
         price,
+        currency,
         quantity: qty,
         subtotal: itemSubtotal,
       });
@@ -52,10 +60,12 @@ export async function POST(req: NextRequest) {
       data: {
         orderNumber,
         userId,
-        subtotal,
+        subtotal: subtotalUYU + subtotalUSD,
         tax: 0,
         shipping: 0,
-        total: subtotal,
+        total: subtotalUYU + subtotalUSD,
+        totalUYU: subtotalUYU,
+        totalUSD: subtotalUSD,
         status: 'confirmed',
         paymentStatus: paymentMethod === 'cash' ? 'pending' : 'paid',
         paymentMethod: paymentMethod || 'admin',

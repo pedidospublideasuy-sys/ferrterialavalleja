@@ -146,7 +146,11 @@ export default async function AdminOrders({
                   <div className="text-xs text-gray-400">{o.user.email}</div>
                 </td>
                 <td className="p-4 text-gray-500">{o.items.length} productos</td>
-                <td className="p-4 text-right font-bold">USD {o.total.toFixed(2)}</td>
+                <td className="p-4 text-right font-bold">
+                  {o.totalUYU > 0 && <div className="text-gray-900">UYU {o.totalUYU.toFixed(2)}</div>}
+                  {o.totalUSD > 0 && <div className="text-green-700">USD {o.totalUSD.toFixed(2)}</div>}
+                  {o.totalUYU === 0 && o.totalUSD === 0 && <div>UYU {o.total.toFixed(2)}</div>}
+                </td>
                 <td className="p-4 text-center">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig[o.status]?.color || 'bg-gray-100'}`}>
                     {statusConfig[o.status]?.label || o.status}
