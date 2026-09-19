@@ -24,25 +24,32 @@ export default async function AdminDashboard() {
 
   const orders = await prisma.order.findMany({
     where: { createdAt: { gte: sixMonthsAgo } },
-    select: { total: true, status: true, createdAt: true, paymentStatus: true },
+    select: { total: true, totalUYU: true, totalUSD: true, status: true, createdAt: true, paymentStatus: true },
   });
 
   // Agrupar por mes
-  const monthlyData: Record<string, { ventas: number; pedidos: number; devoluciones: number }> = {};
+  const monthlyData: Record<string, { ventasUYU: number; ventasUSD: number; pedidos: number; devoluciones: number }> = {};
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
   for (let i = 5; i >= 0; i--) {
     const d = new Date();
     d.setMonth(d.getMonth() - i);
     const key = months[d.getMonth()] + ' ' + d.getFullYear();
-    monthlyData[key] = { ventas: 0, pedidos: 0, devoluciones: 0 };
+    monthlyData[key] = { ventasUYU: 0, ventasUSD: 0, pedidos: 0, devoluciones: 0 };
   }
 
   for (const order of orders) {
     const key = months[order.createdAt.getMonth()] + ' ' + order.createdAt.getFullYear();
     if (monthlyData[key]) {
       monthlyData[key].pedidos++;
-      if (order.paymentStatus === 'paid') monthlyData[key].ventas += order.total;
+      if (order.paymentStatus === 'paid') {
+        if (order.totalUYU === 0 && order.totalUSD === 0) {
+          monthlyData[key].ventasUYU += order.total;
+        } else {
+          monthlyData[key].ventasUYU += order.totalUYU;
+          monthlyData[key].ventasUSD += order.totalUSD;
+        }
+      }
       if (order.status === 'refunded') monthlyData[key].devoluciones++;
     }
   }
@@ -51,7 +58,7 @@ export default async function AdminDashboard() {
 
   // Top productos
   const topProducts = await prisma.orderItem.groupBy({
-    by: ['productId', 'name'],
+    by: ['productId', 'name', 'currency'],
     _sum: { quantity: true, subtotal: true },
     orderBy: { _sum: { quantity: 'desc' } },
     take: 5,
@@ -142,7 +149,11 @@ export default async function AdminDashboard() {
                     </Link>
                   </td>
                   <td className="py-3">{order.user.name}</td>
-                  <td className="py-3 font-medium"><AdminAmount value={order.total} /></td>
+                  <td className="py-3 font-medium">
+                    {order.totalUYU > 0 && <div><AdminAmount value={order.totalUYU} from="UYU" /></div>}
+                    {order.totalUSD > 0 && <div className="text-green-700"><AdminAmount value={order.totalUSD} from="USD" /></div>}
+                    {order.totalUYU === 0 && order.totalUSD === 0 && <div><AdminAmount value={order.total} from="UYU" /></div>}
+                  </td>
                   <td className="py-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}>
                       {order.status}
@@ -167,11 +178,11 @@ export default async function AdminDashboard() {
             ) : (
               <div className="space-y-3">
                 {topProducts.map((p, i) => (
-                  <div key={p.productId} className="flex items-center gap-3">
+                  <div key={p.productId + p.currency} className="flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-[#e8850c] text-white text-xs flex items-center justify-center font-bold">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{p.name}</p>
-                      <p className="text-xs text-gray-400">{p._sum.quantity} vendidos · <AdminAmount value={p._sum.subtotal || 0} /></p>
+                      <p className="text-xs text-gray-400">{p._sum.quantity} vendidos · <AdminAmount value={p._sum.subtotal || 0} from={(p.currency as 'UYU' | 'USD') || 'UYU'} /></p>
                     </div>
                   </div>
                 ))}

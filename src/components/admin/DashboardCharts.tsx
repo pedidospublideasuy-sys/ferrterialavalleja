@@ -5,7 +5,8 @@ import { useCurrency } from '@/store/currency';
 
 interface ChartData {
   mes: string;
-  ventas: number;
+  ventasUYU: number;
+  ventasUSD: number;
   pedidos: number;
   devoluciones: number;
 }
@@ -22,9 +23,13 @@ export default function DashboardCharts({ data }: { data: ChartData[] }) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data}>
               <defs>
-                <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorVentasUYU" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#e8850c" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#e8850c" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorVentasUSD" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#15803d" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#15803d" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -33,9 +38,14 @@ export default function DashboardCharts({ data }: { data: ChartData[] }) {
               <Tooltip
                 contentStyle={{ borderRadius: '8px', border: '1px solid #eee', fontSize: '13px' }}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(value: any) => [format(Number(value), 'USD'), 'Ventas']}
+                formatter={((value: any, name: string) => [
+                  name === 'Ventas UYU' ? `UYU ${Number(value).toFixed(2)}` : `USD ${Number(value).toFixed(2)}`,
+                  name
+                ]) as any}
               />
-              <Area type="monotone" dataKey="ventas" stroke="#e8850c" strokeWidth={2} fill="url(#colorVentas)" />
+              <Legend wrapperStyle={{ fontSize: '13px' }} />
+              <Area type="monotone" dataKey="ventasUYU" name="Ventas UYU" stroke="#e8850c" strokeWidth={2} fill="url(#colorVentasUYU)" />
+              <Area type="monotone" dataKey="ventasUSD" name="Ventas USD" stroke="#15803d" strokeWidth={2} fill="url(#colorVentasUSD)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
