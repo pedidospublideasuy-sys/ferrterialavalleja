@@ -73,6 +73,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (body.dimensions !== undefined) updateData.dimensions = body.dimensions;
     if (body.warranty !== undefined) updateData.warranty = body.warranty;
     if (body.tags !== undefined) updateData.tags = body.tags;
+    if (body.currency !== undefined) updateData.currency = body.currency;
 
     const product = await prisma.product.update({ where: { id }, data: updateData });
     return NextResponse.json(product);

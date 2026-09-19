@@ -1,0 +1,19 @@
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: 'postgresql://neondb_owner:npg_Bd38FNUIMSah@ep-winter-grass-b4d7zlkm-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+    }
+  }
+});
+async function main() {
+  await prisma.product.update({
+    where: { sku: 'WC-11228' },
+    data: { images: '["https://test.com"]' }
+  });
+  const p = await prisma.product.findUnique({
+    where: { sku: 'WC-11228' }
+  });
+  console.log('Images after update:', p.images);
+}
+main().catch(console.error).finally(() => prisma.$disconnect());

@@ -1,0 +1,1 @@
+const fs = require('fs'); let s = fs.readFileSync('src/app/carrito/page.tsx', 'utf8'); s = s.replaceAll('updateQuantity(item.product.id,', 'updateQuantity(item.product.id, item.product.variantId,'); s = s.replaceAll('removeItem(item.product.id)', 'removeItem(item.product.id, item.product.variantId)'); fs.writeFileSync('src/app/carrito/page.tsx', s);

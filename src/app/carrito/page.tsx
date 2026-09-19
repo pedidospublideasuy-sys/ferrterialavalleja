@@ -10,10 +10,9 @@ import type { CartProduct } from '@/store/cart';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, updateProduct, clearCart } = useCart();
-  const convert = useCurrency((s) => s.convert);
-  const displayCurrency = useCurrency((s) => s.currency);
-  const convertedTotal = items.reduce((sum, item) => sum + convert(item.product.price, item.product.currency || 'UYU') * item.quantity, 0);
   const formatCurrency = useCurrency((s) => s.format);
+  const totalUYU = items.filter(i => (i.product.currency || 'UYU') === 'UYU').reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const totalUSD = items.filter(i => i.product.currency === 'USD').reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   useEffect(() => {
     if (!items.length) return;
@@ -97,9 +96,12 @@ export default function CartPage() {
           <div className="bg-white rounded-xl border p-6 sticky top-24">
             <h2 className="font-bold text-lg text-gray-800 mb-4">Resumen</h2>
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(convertedTotal, displayCurrency)}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Envío</span><span className="text-green-600">A calcular</span></div>
-              <div className="border-t pt-3 flex justify-between font-bold text-lg"><span>Total</span><span className="text-blue-900">{formatCurrency(convertedTotal, displayCurrency)}</span></div>
+              <div className="border-t pt-3">
+                {totalUYU > 0 && <div className="flex justify-between font-bold text-lg text-blue-900"><span>Total UYU</span><span>{formatCurrency(totalUYU, 'UYU')}</span></div>}
+                {totalUSD > 0 && <div className="flex justify-between font-bold text-lg text-blue-900 mt-1"><span>Total USD</span><span>{formatCurrency(totalUSD, 'USD')}</span></div>}
+                {totalUYU === 0 && totalUSD === 0 && <div className="flex justify-between font-bold text-lg text-blue-900"><span>Total</span><span>{formatCurrency(0, 'UYU')}</span></div>}
+              </div>
             </div>
             <Link href="/checkout" className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
               Finalizar Compra

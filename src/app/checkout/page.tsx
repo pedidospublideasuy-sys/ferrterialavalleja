@@ -23,11 +23,10 @@ const DEFAULT_METHODS: PaymentMethod[] = [
 
 export default function CheckoutPage() {
   const formatCurrency = useCurrency((s) => s.format);
-  const convert = useCurrency((s) => s.convert);
-  const displayCurrency = useCurrency((s) => s.currency);
   const { data: session } = useSession();
   const { items, updateProduct, clearCart } = useCart();
-  const convertedTotal = items.reduce((sum, item) => sum + convert(item.product.price, item.product.currency || 'UYU') * item.quantity, 0);
+  const totalUYU = items.filter(i => (i.product.currency || 'UYU') === 'UYU').reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const totalUSD = items.filter(i => i.product.currency === 'USD').reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const [loading, setLoading] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(DEFAULT_METHODS);
   const [form, setForm] = useState({
@@ -211,10 +210,11 @@ export default function CheckoutPage() {
                 ))}
               </div>
               <div className="border-t pt-3 space-y-2">
-                <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(convertedTotal, displayCurrency)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-500">Envio</span><span className="text-green-600">A confirmar</span></div>
-                <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                  <span>Total</span><span className="text-blue-900">{formatCurrency(convertedTotal, displayCurrency)}</span>
+                <div className="pt-2 border-t">
+                  {totalUYU > 0 && <div className="flex justify-between font-bold text-lg"><span>Total UYU</span><span className="text-blue-900">{formatCurrency(totalUYU, 'UYU')}</span></div>}
+                  {totalUSD > 0 && <div className="flex justify-between font-bold text-lg mt-1"><span>Total USD</span><span className="text-blue-900">{formatCurrency(totalUSD, 'USD')}</span></div>}
+                  {totalUYU === 0 && totalUSD === 0 && <div className="flex justify-between font-bold text-lg"><span>Total</span><span className="text-blue-900">{formatCurrency(0, 'UYU')}</span></div>}
                 </div>
               </div>
               <button type="submit" disabled={loading}

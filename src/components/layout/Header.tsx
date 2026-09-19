@@ -70,10 +70,7 @@ export default function Header() {
   const [colorSecondary, setColorSecondary] = useState('#315b91');
   const [colorAccent, setColorAccent] = useState('#4a2fc5');
 
-  const currency = useCurrency((s) => s.currency);
-  const setCurrency = useCurrency((s) => s.setCurrency);
   const formatCurrency = useCurrency((s) => s.format);
-  const fetchRate = useCurrency((s) => s.fetchRate);
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>(fallbackCategories);
   const [hamburgerCategories, setHamburgerCategories] = useState<MenuCategory[]>(fallbackCategories);
   const [allMenuCategories, setAllMenuCategories] = useState<MenuCategory[]>(fallbackCategories);
@@ -95,7 +92,6 @@ export default function Header() {
     updateFavoriteCount();
     window.addEventListener('favorites-changed', updateFavoriteCount);
     window.addEventListener('storage', updateFavoriteCount);
-    fetchRate(); // actualiza cotización USD/UYU si hace más de 1h
     const fetchMenu = async () => {
       try {
         const res = await fetch('/api/public/menu');
@@ -235,23 +231,6 @@ export default function Header() {
 
           {/* Right actions */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Selector de moneda */}
-            <div className="flex items-center bg-[#2a2a2a] rounded-full overflow-hidden text-[11px] font-bold border border-[#3a3a3a]">
-              <button
-                onClick={() => setCurrency('UYU')}
-                className={`px-2.5 py-1 transition-colors ${currency === 'UYU' ? 'text-white' : 'text-white/70 hover:text-white'}`}
-                style={currency === 'UYU' ? { backgroundColor: colorAccent } : undefined}
-              >
-                UYU
-              </button>
-              <button
-                onClick={() => setCurrency('USD')}
-                className={`px-2.5 py-1 transition-colors ${currency === 'USD' ? 'text-white' : 'text-white/70 hover:text-white'}`}
-                style={currency === 'USD' ? { backgroundColor: colorAccent } : undefined}
-              >
-                USD
-              </button>
-            </div>
             {/* Favoritos */}
             <Link href="/favoritos" className="flex items-center gap-1 text-gray-300 hover:text-white transition-colors text-sm">
               <span className="relative">
@@ -314,7 +293,7 @@ export default function Header() {
                 </span>
               </div>
               <div className="hidden sm:block text-right">
-                <div className="text-[10px] text-gray-400 leading-none">{currency}</div>
+                <div className="text-[10px] text-gray-400 leading-none">Total</div>
                 <div className="text-sm font-bold text-white leading-none">{mounted ? formatCurrency(cartTotal) : '—'}</div>
               </div>
             </Link>

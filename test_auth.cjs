@@ -1,0 +1,1 @@
+const { compare } = require('bcryptjs'); async function main() { const hash = '$2b$12$GRXCklFYw7Dfl7woJ2MHYe6pkJ.RQl.LH7DBtuthOBrqOzKr/GRjW'; const isValid = await compare('publideas2024', hash); console.log('IsValid:', isValid); } main();

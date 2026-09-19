@@ -1,0 +1,1 @@
+const fs = require('fs'); let s = fs.readFileSync('src/app/api/products/[slug]/route.ts', 'utf8'); s = s.replace('include: { category: true, brand: true }', 'include: { category: true, brand: true, variants: { where: { active: true }, orderBy: { price: \\'asc\\' } } }'); fs.writeFileSync('src/app/api/products/[slug]/route.ts', s);

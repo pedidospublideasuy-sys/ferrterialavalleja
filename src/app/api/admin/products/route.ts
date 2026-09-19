@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
         featured: body.featured || false,
         active: body.active !== false,
         isNew: body.isNew || false,
+        currency: body.currency || 'UYU',
         categoryId: body.categoryId,
         brandId: body.brandId || null,
         typeId: body.typeId || null,

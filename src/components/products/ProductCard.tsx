@@ -33,7 +33,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCart((s) => s.addItem);
-  const { format, currency: displayCurrency } = useCurrency();
+  const { format } = useCurrency();
   const [qty, setQty] = useState(1);
   const { data: session } = useSession();
   const router = useRouter();
@@ -184,7 +184,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </a>
           ) : product.price > 0 ? (
             <div className="flex items-baseline gap-1">
-              <span className="text-[11px] font-semibold text-gray-500 leading-none">{displayCurrency}</span>
+                <span className="text-[11px] font-semibold text-gray-500 leading-none">{productCurrency}</span>
               <span className="text-[22px] font-bold text-gray-900 leading-none">{priceNumber}</span>
             </div>
           ) : (
